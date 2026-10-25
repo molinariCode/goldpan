@@ -1,0 +1,105 @@
+{
+  "name": "goldpan",
+  "version": "1.0.0",
+  "description": "Paste a messy list of email addresses and keep the gold: every address is sorted into valid, warning or error, and misspelled domains get a one-click fix. Tiny, dependency-free, accessible multi-email input with TypeScript types.",
+  "keywords": [
+    "email",
+    "email-input",
+    "multi-email-input",
+    "multiple-emails",
+    "email-validation",
+    "email-typo",
+    "typo-correction",
+    "mailcheck",
+    "paste",
+    "recipients",
+    "invite",
+    "tags-input",
+    "chips",
+    "form",
+    "form-validation",
+    "accessible",
+    "i18n",
+    "vanilla-js",
+    "typescript",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Michele Molinari"
+  },
+  "homepage": "https://m86molinari.github.io/goldpan/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m86molinari/goldpan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/m86molinari/goldpan/issues"
+  },
+  "type": "module",
+  "main": "./dist/goldpan.cjs",
+  "module": "./dist/goldpan.js",
+  "types": "./dist/goldpan.d.ts",
+  "unpkg": "./dist/goldpan.global.min.js",
+  "jsdelivr": "./dist/goldpan.global.min.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/goldpan.d.ts",
+        "default": "./dist/goldpan.js"
+      },
+      "require": {
+        "types": "./dist/goldpan.d.cts",
+        "default": "./dist/goldpan.cjs"
+      }
+    },
+    "./locales/*": {
+      "import": {
+        "types": "./dist/locales/*.d.ts",
+        "default": "./dist/locales/*.js"
+      },
+      "require": {
+        "types": "./dist/locales/*.d.cts",
+        "default": "./dist/locales/*.cjs"
+      }
+    },
+    "./style.css": "./dist/goldpan.css",
+    "./style.min.css": "./dist/goldpan.min.css",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "*.css",
+    "./dist/*.global*.js",
+    "./dist/locales/*.global*.js"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "predev": "node scripts/check-setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "prebuild": "node scripts/check-setup.mjs",
+    "build": "tsup && node scripts/build-css.mjs",
+    "build:site": "npm run build && node scripts/build-site.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint:package": "publint --strict && attw --pack . --profile node16 --exclude-entrypoints style.css style.min.css --include-entrypoints locales/it locales/all",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@fontsource/familjen-grotesk": "^5.3.0",
+    "@fontsource/instrument-sans": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.3",
+    "publint": "^0.3.25",
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
+  }
+}
