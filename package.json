@@ -28,13 +28,13 @@
   "author": {
     "name": "Michele Molinari"
   },
-  "homepage": "https://m86molinari.github.io/goldpan/",
+  "homepage": "https://molinaricode.github.io/goldpan/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/m86molinari/goldpan.git"
+    "url": "git+https://github.com/molinariCode/goldpan.git"
   },
   "bugs": {
-    "url": "https://github.com/m86molinari/goldpan/issues"
+    "url": "https://github.com/molinariCode/goldpan/issues"
   },
   "type": "module",
   "main": "./dist/goldpan.cjs",

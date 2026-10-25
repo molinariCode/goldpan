@@ -10,11 +10,11 @@ respects a limit of places and keeps your form in sync.
 
 [![npm](https://img.shields.io/npm/v/goldpan.svg)](https://www.npmjs.com/package/goldpan)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/goldpan)](https://bundlephobia.com/package/goldpan)
-[![CI](https://github.com/m86molinari/goldpan/actions/workflows/ci.yml/badge.svg)](https://github.com/m86molinari/goldpan/actions/workflows/ci.yml)
+[![CI](https://github.com/molinariCode/goldpan/actions/workflows/ci.yml/badge.svg)](https://github.com/molinariCode/goldpan/actions/workflows/ci.yml)
 [![types](https://img.shields.io/npm/types/goldpan)](./src/types.ts)
 [![license](https://img.shields.io/npm/l/goldpan)](./LICENSE)
 
-**[Live demo & playground →](https://m86molinari.github.io/goldpan/)**
+**[Live demo & playground →](https://molinaricode.github.io/goldpan/)**
 
 ![Goldpan sorting a pasted list into valid, warning and error rows](docs/screenshot.png)
 
@@ -377,7 +377,7 @@ npm run lint:package
 ## Support the project
 
 Goldpan is free and open source (MIT). If it saves you time,
-[give it a star on GitHub](https://github.com/m86molinari/goldpan): it helps others find it.
+[give it a star on GitHub](https://github.com/molinariCode/goldpan): it helps others find it.
 
 ## License
 
