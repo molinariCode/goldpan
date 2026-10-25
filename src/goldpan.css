@@ -1,0 +1,459 @@
+/*!
+ * Goldpan styles. Every class starts with `goldpan`; change the look with the
+ * custom properties below, set on `.goldpan` or on any ancestor.
+ * Sizes are in em, so the whole widget follows --goldpan-font-size.
+ */
+
+/* The original field stays hidden even when the page gives inputs a `display` rule. */
+[data-goldpan][hidden] {
+  display: none !important;
+}
+
+.goldpan {
+  --goldpan-font: inherit;
+  --goldpan-font-size: 0.9375rem;
+  --goldpan-radius: 0.65em;
+  --goldpan-list-max-height: 22rem;
+
+  --goldpan-fg: #1b1f24;
+  --goldpan-muted: #5b6470;
+  --goldpan-bg: #ffffff;
+  --goldpan-row: #f5f6f8;
+  --goldpan-line: #dfe3e8;
+  --goldpan-edge: #838d99;
+  --goldpan-focus: #2f6fde;
+  --goldpan-hover: rgba(27, 31, 36, 0.07);
+
+  --goldpan-valid: #0f7a5a;
+  --goldpan-valid-soft: #e6f4ee;
+  --goldpan-warning: #8a5a00;
+  --goldpan-warning-soft: #fff4d6;
+  --goldpan-warning-line: #e8c36b;
+  --goldpan-invalid: #b42318;
+  --goldpan-invalid-soft: #fef0ee;
+  --goldpan-invalid-line: #f1a69d;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  width: 100%;
+  /* Long addresses are cut with an ellipsis instead of widening the widget, in grid and flex layouts too. */
+  min-width: 0;
+  color: var(--goldpan-fg);
+  font-family: var(--goldpan-font);
+  font-size: var(--goldpan-font-size);
+  line-height: 1.45;
+}
+
+.goldpan *,
+.goldpan *::before,
+.goldpan *::after {
+  box-sizing: inherit;
+}
+
+/* ---------- Dark colours ---------- */
+.goldpan[data-theme='dark'] {
+  --goldpan-fg: #e7ebf0;
+  --goldpan-muted: #9aa4b1;
+  --goldpan-bg: #14181d;
+  --goldpan-row: #1b2027;
+  --goldpan-line: #2f3740;
+  --goldpan-edge: #66727f;
+  --goldpan-focus: #6ea8fe;
+  --goldpan-hover: rgba(231, 235, 240, 0.08);
+  --goldpan-valid: #4cc39a;
+  --goldpan-valid-soft: #11291f;
+  --goldpan-warning: #f2c14e;
+  --goldpan-warning-soft: #2c2410;
+  --goldpan-warning-line: #6b5418;
+  --goldpan-invalid: #ff8b80;
+  --goldpan-invalid-soft: #341815;
+  --goldpan-invalid-line: #7a2e27;
+}
+
+@media (prefers-color-scheme: dark) {
+  .goldpan[data-theme='auto'] {
+    --goldpan-fg: #e7ebf0;
+    --goldpan-muted: #9aa4b1;
+    --goldpan-bg: #14181d;
+    --goldpan-row: #1b2027;
+    --goldpan-line: #2f3740;
+    --goldpan-edge: #66727f;
+    --goldpan-focus: #6ea8fe;
+    --goldpan-hover: rgba(231, 235, 240, 0.08);
+    --goldpan-valid: #4cc39a;
+    --goldpan-valid-soft: #11291f;
+    --goldpan-warning: #f2c14e;
+    --goldpan-warning-soft: #2c2410;
+    --goldpan-warning-line: #6b5418;
+    --goldpan-invalid: #ff8b80;
+    --goldpan-invalid-soft: #341815;
+    --goldpan-invalid-line: #7a2e27;
+  }
+}
+
+/* ---------- Head: counter and filters ---------- */
+.goldpan__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4em 0.8em;
+}
+
+.goldpan__tally {
+  color: var(--goldpan-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.goldpan__tally--full {
+  color: var(--goldpan-warning);
+  font-weight: 600;
+}
+
+.goldpan__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin-inline-start: auto;
+}
+
+/* One pill per status, in its colour; the one being shown gets an outline. */
+.goldpan__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin: 0;
+  padding: 0.3em 0.75em;
+  border: 0.1em solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8125em;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.goldpan__filter--valid { background: var(--goldpan-valid-soft); color: var(--goldpan-valid); }
+.goldpan__filter--warning { background: var(--goldpan-warning-soft); color: var(--goldpan-warning); }
+.goldpan__filter--invalid { background: var(--goldpan-invalid-soft); color: var(--goldpan-invalid); }
+
+.goldpan__filter:hover:not(:disabled) {
+  border-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.goldpan__filter[aria-pressed='true'] {
+  border-color: currentColor;
+}
+
+.goldpan__filter-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* An empty category cannot be shown on its own. */
+.goldpan__filter:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* ---------- Text box ---------- */
+/* Two classes, so that page rules such as `input[type="text"] { … }` do not restyle the box. */
+.goldpan .goldpan__input {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0.65em 1.1em;
+  border: 1px solid var(--goldpan-edge);
+  border-radius: 999px;
+  background: var(--goldpan-bg);
+  box-shadow: none;
+  color: var(--goldpan-fg);
+  font: inherit;
+  transition: border-color 120ms ease-out, box-shadow 120ms ease-out;
+}
+
+.goldpan .goldpan__input::placeholder {
+  color: var(--goldpan-muted);
+  opacity: 1;
+}
+
+/* The ring is drawn by the box itself, so a global :focus-visible rule of the page does not add a second one. */
+.goldpan .goldpan__input:focus,
+.goldpan .goldpan__input:focus-visible,
+.goldpan .goldpan__edit:focus,
+.goldpan .goldpan__edit:focus-visible {
+  outline: none;
+}
+
+.goldpan .goldpan__input:focus {
+  border-color: var(--goldpan-focus);
+  box-shadow: 0 0 0 0.2em color-mix(in srgb, var(--goldpan-focus) 22%, transparent);
+}
+
+/* After a submit attempt, while rejected addresses are present */
+.goldpan--show-validity.goldpan--has-errors .goldpan__input {
+  border-color: var(--goldpan-invalid);
+  box-shadow: 0 0 0 0.2em color-mix(in srgb, var(--goldpan-invalid) 20%, transparent);
+}
+
+.goldpan .goldpan__input:disabled {
+  background: var(--goldpan-row);
+  cursor: not-allowed;
+}
+
+/* ---------- Message about the rejected addresses, after a confirmation ---------- */
+.goldpan__notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: 0;
+  padding: 0.55em 0.75em;
+  border: 1px solid var(--goldpan-invalid-line);
+  border-radius: var(--goldpan-radius);
+  background: var(--goldpan-invalid-soft);
+  font-weight: 600;
+}
+
+.goldpan__notice[hidden] {
+  display: none;
+}
+
+.goldpan__notice > .goldpan__svg {
+  color: var(--goldpan-invalid);
+}
+
+/* ---------- Addresses: one card each ---------- */
+.goldpan__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  max-height: var(--goldpan-list-max-height);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.goldpan__list:empty {
+  display: none;
+}
+
+.goldpan__row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 2.95em;
+  padding: 0.3em 0.35em 0.3em 0.75em;
+  border: 1px solid var(--goldpan-line);
+  border-radius: var(--goldpan-radius);
+  background: var(--goldpan-row);
+  /* Cards out of view are neither laid out nor painted: long lists stay fast. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2.95em;
+}
+
+.goldpan__row[hidden] {
+  display: none;
+}
+
+.goldpan__row[data-status='warning'] {
+  border-color: var(--goldpan-warning-line);
+  background: var(--goldpan-warning-soft);
+}
+
+.goldpan__row[data-status='invalid'] {
+  border-color: var(--goldpan-invalid-line);
+  background: var(--goldpan-invalid-soft);
+}
+
+/* A copy of this address was just pasted and dropped: point at the original.
+   The ring is drawn inside the card, where the scrolling list cannot cut it. */
+.goldpan__row--highlight {
+  border-color: var(--goldpan-focus);
+  box-shadow: inset 0 0 0 1px var(--goldpan-focus);
+}
+
+.goldpan__mark {
+  display: inline-flex;
+  flex: none;
+  color: var(--goldpan-valid);
+}
+
+.goldpan__row[data-status='warning'] .goldpan__mark { color: var(--goldpan-warning); }
+.goldpan__row[data-status='invalid'] .goldpan__mark { color: var(--goldpan-invalid); }
+
+.goldpan__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.goldpan__address {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goldpan__row[data-status='invalid'] .goldpan__address {
+  color: var(--goldpan-invalid);
+  font-weight: 600;
+}
+
+.goldpan__note {
+  color: var(--goldpan-muted);
+  font-size: 0.8125em;
+  /* A suggested address is one long word: let it break on narrow screens. */
+  overflow-wrap: break-word;
+}
+
+.goldpan__note[hidden] {
+  display: none;
+}
+
+.goldpan__row[data-status='warning'] .goldpan__note { color: var(--goldpan-warning); }
+.goldpan__row[data-status='invalid'] .goldpan__note { color: var(--goldpan-invalid); }
+
+.goldpan .goldpan__edit {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0.25em 0.55em;
+  border: 1px solid var(--goldpan-focus);
+  border-radius: 0.4em;
+  background: var(--goldpan-bg);
+  box-shadow: none;
+  color: var(--goldpan-fg);
+  font: inherit;
+}
+
+/* ---------- Card buttons ---------- */
+.goldpan__tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.15em;
+}
+
+.goldpan__tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  min-width: 2.45em;
+  height: 2.45em;
+  margin: 0;
+  padding: 0 0.55em;
+  border: 0;
+  border-radius: 0.55em;
+  background: transparent;
+  color: var(--goldpan-muted);
+  font: inherit;
+  font-size: 0.875em;
+  cursor: pointer;
+}
+
+.goldpan__tool:hover:not(:disabled) {
+  background: var(--goldpan-hover);
+  color: var(--goldpan-fg);
+}
+
+.goldpan__tool--remove:hover:not(:disabled) {
+  color: var(--goldpan-invalid);
+}
+
+.goldpan__tool--fix {
+  padding: 0 0.8em;
+  background: var(--goldpan-bg);
+  box-shadow: inset 0 0 0 1px currentColor;
+  color: var(--goldpan-valid);
+  font-weight: 600;
+}
+
+.goldpan__tool--fix:hover:not(:disabled) {
+  background: var(--goldpan-valid-soft);
+  color: var(--goldpan-valid);
+}
+
+.goldpan__tool:disabled {
+  cursor: not-allowed;
+}
+
+.goldpan__filter:focus-visible,
+.goldpan__tool:focus-visible {
+  outline: 2px solid var(--goldpan-focus);
+  outline-offset: 1px;
+}
+
+.goldpan__svg {
+  display: block;
+  flex: none;
+}
+
+/* ---------- Other states ---------- */
+.goldpan__empty {
+  margin: 0;
+  padding: 0 0.3em;
+  color: var(--goldpan-muted);
+  font-size: 0.875em;
+}
+
+.goldpan__empty[hidden] {
+  display: none;
+}
+
+.goldpan--disabled {
+  opacity: 0.6;
+}
+
+.goldpan--disabled .goldpan__filter {
+  cursor: not-allowed;
+}
+
+.goldpan__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goldpan * {
+    transition: none !important;
+  }
+}
+
+/* Windows high contrast and other forced colours: backgrounds and shadows are dropped,
+   so states are told apart by outlines and borders. */
+@media (forced-colors: active) {
+  .goldpan .goldpan__input:focus,
+  .goldpan .goldpan__edit:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+  }
+  .goldpan__filter {
+    border-color: ButtonText;
+  }
+  .goldpan__filter[aria-pressed='true'] {
+    outline: 2px solid Highlight;
+    outline-offset: 1px;
+  }
+  .goldpan__row[data-status='warning'],
+  .goldpan__row[data-status='invalid'] {
+    border-inline-start: 0.3em solid CanvasText;
+  }
+  .goldpan__row[data-status='warning'] {
+    border-inline-start-style: dashed;
+  }
+  .goldpan__row--highlight {
+    outline: 2px solid Highlight;
+  }
+}

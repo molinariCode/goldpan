@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Goldpan · paste a messy email list, keep the gold</title>
+<meta name="description" content="Goldpan is a tiny, dependency-free email input. Paste any list: every address is sorted into valid, warning or error, and misspelled domains get a one-click fix.">
+<meta name="theme-color" content="#0b6e4f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="canonical" href="{{HOMEPAGE}}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Goldpan">
+<meta property="og:title" content="Goldpan · paste a messy email list, keep the gold">
+<meta property="og:description" content="A tiny email input that sorts every pasted address into valid, warning or error, and fixes misspelled domains in one click.">
+<meta property="og:url" content="{{HOMEPAGE}}">
+<meta property="og:image" content="{{HOMEPAGE}}og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Goldpan sorting pasted email addresses into valid, warning and error">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="goldpan.css">
+<style>
+/* Fonts are served from this site (no third-party requests). SIL Open Font License, see fonts/OFL.txt */
+@font-face { font-family: 'Familjen Grotesk'; font-weight: 500; font-display: swap; src: url(fonts/familjen-grotesk-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Familjen Grotesk'; font-weight: 700; font-display: swap; src: url(fonts/familjen-grotesk-latin-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-weight: 400; font-display: swap; src: url(fonts/instrument-sans-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-weight: 500; font-display: swap; src: url(fonts/instrument-sans-latin-500-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-weight: 600; font-display: swap; src: url(fonts/instrument-sans-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400; font-display: swap; src: url(fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; font-display: swap; src: url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2'); }
+
+/* Layout: a narrow editorial column for words; the workspace demo sits beside the headline, the playground widens into a two-pane workbench. */
+:root {
+  --bg: #f3f5f4;
+  --paper: #ffffff;
+  --ink: #16202a;
+  --ink-soft: #52606d;
+  --line: #d7dedb;
+  --accent: #0b6e4f;
+  --accent-soft: #e1f0ea;
+  --gold: #d9a21b;
+  --gold-ink: #8f6100;
+  --mesh: rgba(22, 32, 42, 0.09);
+  --scrim: rgba(16, 24, 30, 0.45);
+  --error: #c21c2c;
+  --code-bg: #16202a;
+  --code-ink: #dbe6e1;
+  --code-dim: #8fa39b;
+  --code-key: #8fd6b6;
+  --code-str: #f2c879;
+
+  --font-display: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --step--1: 0.86rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.6rem;
+  --step-3: clamp(2.2rem, 5vw, 3.4rem);
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1519; --paper: #161e24; --ink: #e4ebe8; --ink-soft: #9aa8a3; --line: #2a353c;
+    --accent: #5fd0a4; --accent-soft: #15302a; --gold: #f0c05a; --gold-ink: #f0c05a;
+    --mesh: rgba(228, 235, 232, 0.07); --scrim: rgba(0, 0, 0, 0.6); --error: #ff8a95;
+    --code-bg: #0a0f12; --code-ink: #dbe6e1; --code-dim: #7d918a; --code-key: #8fd6b6; --code-str: #f2c879;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1519; --paper: #161e24; --ink: #e4ebe8; --ink-soft: #9aa8a3; --line: #2a353c;
+  --accent: #5fd0a4; --accent-soft: #15302a; --gold: #f0c05a; --gold-ink: #f0c05a;
+  --mesh: rgba(228, 235, 232, 0.07); --scrim: rgba(0, 0, 0, 0.6); --error: #ff8a95;
+  --code-bg: #0a0f12; --code-ink: #dbe6e1; --code-dim: #7d918a; --code-key: #8fd6b6; --code-str: #f2c879;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  overflow-x: clip;
+}
+a { color: var(--accent); }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h2 { font-size: var(--step-2); letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); }
+p { margin: 0; }
+code, pre, kbd { font-family: var(--font-mono); font-size: 0.88em; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 16px; top: -60px; z-index: 50; padding: 8px 14px; border-radius: 8px; background: var(--ink); color: var(--paper); font-weight: 600; text-decoration: none; }
+.skip:focus { top: 12px; }
+
+.wrap { max-width: 1160px; margin: 0 auto; }
+.prose { max-width: 66ch; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--paper); color: var(--ink); font: inherit; font-size: var(--step--1); font-weight: 600;
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+.btn:hover { border-color: var(--ink-soft); }
+.btn--primary { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.btn--primary:hover { filter: brightness(1.08); border-color: var(--accent); }
+/* "Invite people", the call to action of the page, in the colour of the gold */
+.btn--gold { --halo: var(--gold-ink); background: var(--gold-ink); border-color: var(--gold-ink); }
+.btn--gold:hover { border-color: var(--gold-ink); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+.btn--big { padding: 11px 18px; font-size: var(--step-0); }
+.btn--sponsor svg { color: #d6336c; }
+/* "Invite people": a gentle nudge and two halos ripple out, three times after load, then it rests */
+.btn--attention { position: relative; animation: nudge 3s ease-in-out .6s 3; }
+.btn--attention::before,
+.btn--attention::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  animation: halo 3s ease-out .6s 3;
+}
+.btn--attention::before { animation-delay: .9s; }
+@keyframes nudge {
+  0%, 30%, 100% { transform: scale(1); }
+  8% { transform: scale(1.07); }
+  16% { transform: scale(0.98); }
+  23% { transform: scale(1.02); }
+}
+@keyframes halo {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--halo, var(--accent)) 75%, transparent); }
+  45%, 100% { box-shadow: 0 0 0 22px color-mix(in srgb, var(--halo, var(--accent)) 0%, transparent); }
+}
+.btn--copy { border-radius: 0; border: 0; background: transparent; color: var(--code-ink); border-left: 1px solid rgba(255,255,255,.12); }
+.btn--copy:hover { background: rgba(255,255,255,.08); }
+
+/* ---------- Top bar + hero ---------- */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 24px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--ink); text-decoration: none; }
+.brand svg { color: var(--accent); }
+.nugget { fill: var(--gold); }
+.lang { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
+.lang button {
+  padding: 5px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft);
+  font: inherit; font-size: var(--step--1); font-weight: 600; letter-spacing: 0.04em; cursor: pointer;
+}
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+.hero {
+  position: relative;
+  padding-block: 28px 44px;
+  border-top: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 28px 40px;
+  align-items: start;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: -80px calc(50% - 50vw) 0;
+  background-image: radial-gradient(var(--mesh) 1.2px, transparent 1.3px);
+  background-size: 14px 14px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+  pointer-events: none;
+  z-index: -1;
+}
+.hero h1 { font-size: var(--step-3); letter-spacing: -0.03em; }
+.hero h1 em { font-style: normal; color: var(--gold-ink); }
+.lede { margin-top: 16px; font-size: var(--step-1); color: var(--ink-soft); max-width: 44ch; }
+.steps { margin: 24px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: step; }
+.steps li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; counter-increment: step; }
+.steps li::before {
+  content: counter(step); display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent); font-weight: 700; font-family: var(--font-display);
+}
+.steps strong { display: block; }
+.steps span { color: var(--ink-soft); font-size: var(--step--1); }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 24px 0 0; padding: 0; list-style: none; font-size: var(--step--1); color: var(--ink-soft); }
+.facts li { display: inline-flex; align-items: center; gap: 6px; }
+.facts li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.install { margin-top: 20px; display: flex; align-items: stretch; max-width: 420px; border-radius: 10px; overflow: hidden; background: var(--code-bg); color: var(--code-ink); }
+.install code { flex: 1; padding: 12px 14px; white-space: nowrap; overflow-x: auto; }
+.install code::before { content: "$ "; color: var(--code-dim); }
+.links { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Setup note: shown by the script only when the page runs without the built library */
+.setup-note {
+  display: grid; gap: 10px; margin-top: 20px; padding: 18px 22px;
+  border: 1px solid var(--line); border-left: 5px solid var(--gold); border-radius: var(--radius);
+  background: var(--paper);
+}
+.setup-note h2 { font-size: var(--step-1); }
+.setup-note ol { display: grid; gap: 4px; margin: 0; padding-left: 1.4em; }
+.setup-note code { padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); white-space: nowrap; }
+.setup-note p:last-child { color: var(--ink-soft); font-size: var(--step--1); }
+[data-needs-library][inert] { opacity: 0.45; filter: grayscale(1); }
+[data-needs-library][inert] *, [data-needs-library][inert] *::before, [data-needs-library][inert] *::after { animation: none !important; }
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  min-width: 0;
+}
+
+/* ---------- The workspace (main demo) ---------- */
+.list-card { display: grid; gap: 14px; box-shadow: 0 18px 40px -24px rgba(22, 32, 42, 0.35); }
+.list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.list-head h2 { font-size: var(--step-1); }
+.list-head h2 small { font-family: var(--font-body); font-weight: 500; color: var(--ink-soft); font-size: var(--step--1); margin-left: 6px; }
+.seats-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
+.seats-bar label { display: inline-flex; align-items: center; gap: 8px; font-size: var(--step--1); font-weight: 600; }
+.seats-bar input {
+  width: 72px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--paper); color: var(--ink); font: inherit;
+}
+.meter { flex: 1; min-width: 140px; display: grid; gap: 4px; font-size: var(--step--1); color: var(--ink-soft); }
+.meter-track { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.meter-fill { height: 100%; background: var(--accent); border-radius: inherit; transition: width .3s ease; }
+.toast { font-size: var(--step--1); font-weight: 600; color: var(--accent); min-height: 1.4em; }
+.toast:empty::before { content: "\00a0"; }
+
+/* Members: a plain table, one row per seat of the plan */
+.members { max-height: 372px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+.members table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: var(--step--1); }
+.members th, .members td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.members tr:last-child td { border-bottom: 0; }
+.members th { position: sticky; top: 0; z-index: 1; background: var(--paper); font-weight: 600; }
+.members th:first-child { width: 3.4em; }
+.members th:last-child { width: 9em; }
+.members td:first-child { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.members td:last-child { color: var(--ink-soft); }
+.members .free td:last-child { font-style: italic; }
+.members .fresh td { background: var(--accent-soft); }
+.members .fresh td:last-child { color: var(--accent); font-weight: 600; }
+
+/* ---------- Popup ---------- */
+dialog.popup {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.45);
+}
+dialog.popup::backdrop { background: var(--scrim); }
+.popup-body { display: grid; gap: 14px; padding: 20px; }
+.popup-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.popup-head h3 { font-size: var(--step-1); }
+.popup-head p { color: var(--ink-soft); font-size: var(--step--1); margin-top: 4px; }
+.icon-close { border: 0; background: transparent; color: var(--ink-soft); font-size: 1.4rem; line-height: 1; padding: 4px 8px; border-radius: 8px; cursor: pointer; }
+.icon-close:hover { background: var(--bg); color: var(--ink); }
+#popup .goldpan { --goldpan-list-max-height: 280px; }
+.samples { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 12px; border: 1px dashed var(--line); border-radius: 10px; }
+.samples p { font-size: var(--step--1); color: var(--ink-soft); }
+.samples[hidden] { display: none; }
+.popup-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line); }
+/* Message next to a send button (rejected addresses, a full workspace…): a red box, collapsed while empty */
+.msg { display: inline-flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: var(--step--1); font-weight: 600; color: var(--ink); }
+.msg > svg { display: none; flex: none; color: var(--error); }
+.msg--on { padding: 7px 12px; border: 1px solid color-mix(in srgb, var(--error) 45%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--error) 9%, var(--paper)); }
+.msg--on > svg { display: block; }
+.popup-foot .msg { margin-right: auto; }
+/* A send button with its message on the left, like the popup's footer */
+.send-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 12px; }
+.send-notes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; margin-right: auto; }
+
+/* ---------- Sections ---------- */
+section { padding-block: 48px; border-top: 1px solid var(--line); }
+.section-head { display: grid; gap: 10px; margin-bottom: 26px; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.section-head p { color: var(--ink-soft); }
+
+.legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.legend .card { display: grid; gap: 8px; align-content: start; }
+.legend h3 { display: flex; align-items: center; gap: 8px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.dot--valid { background: #0f7a5a; }
+.dot--warning { background: #d99a00; }
+.dot--invalid { background: #b42318; }
+.legend ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: var(--step--1); }
+.legend-sub { font-size: var(--step--1); font-weight: 600; }
+.legend-note { margin-top: 16px; color: var(--ink-soft); font-size: var(--step--1); }
+
+/* Playground */
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.bench .send-row { margin-top: 14px; }
+.pg-result { font-size: var(--step--1); color: var(--ink-soft); }
+.controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-content: start; }
+.control { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.control-head { position: relative; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.control-head label { font-size: var(--step--1); font-weight: 600; }
+.control-head code { font-size: 0.72rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.info {
+  flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: auto;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--paper); color: var(--ink-soft);
+  font: italic 700 0.75rem/1 Georgia, serif; cursor: pointer;
+}
+.info:hover, .info[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.tip {
+  position: absolute; top: calc(100% + 10px); right: -6px; z-index: 30;
+  width: max-content; max-width: min(300px, calc(100vw - 48px));
+  margin: 0; padding: 10px 12px; border-radius: 10px;
+  background: var(--ink); color: var(--bg);
+  font-size: 0.8rem; font-weight: 400; line-height: 1.45; text-align: left;
+  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.35);
+  animation: tip-in .16s ease-out;
+}
+.tip::before {
+  /* the bubble's tail, pointing at the ⓘ button */
+  content: ""; position: absolute; top: -6px; right: 12px; width: 12px; height: 12px;
+  background: inherit; transform: rotate(45deg); border-radius: 2px;
+}
+.tip code { font-size: 0.95em; color: inherit; }
+@keyframes tip-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.control select, .control input[type="number"], .control input[type="text"] {
+  width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--bg); color: var(--ink); font: inherit; font-size: var(--step--1);
+}
+.control--wide { grid-column: 1 / -1; }
+.row-inline { display: flex; align-items: center; gap: 8px; }
+.row-inline input[type="number"] { width: 90px; }
+.row-inline label { display: inline-flex; gap: 6px; align-items: center; font-size: var(--step--1); }
+
+.panel-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-weight: 600; font-size: var(--step--1); }
+.log, .code {
+  margin: 0; padding: 14px; border-radius: 10px; background: var(--code-bg); color: var(--code-ink);
+  font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.6; overflow: auto; max-height: 300px; min-height: 120px;
+}
+.log { list-style: none; }
+.log li { white-space: pre-wrap; word-break: break-word; }
+.log .t { color: var(--code-dim); }
+.log .k { color: var(--code-key); }
+.code .k { color: var(--code-key); }
+.code .s { color: var(--code-str); }
+.code .c { color: var(--code-dim); }
+.dev { margin-top: 16px; display: grid; gap: 16px; }
+details.card summary { cursor: pointer; font-weight: 600; font-size: var(--step--1); }
+details.card[open] summary { margin-bottom: 12px; }
+
+/* Form example */
+.form-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.form-demo form { display: grid; gap: 14px; }
+.form-demo label { font-weight: 600; }
+.form-demo input[type="text"]:not(.goldpan__input) { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
+
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 28px; }
+.features h3 { font-size: var(--step-0); margin-bottom: 4px; }
+.features p { color: var(--ink-soft); font-size: var(--step--1); }
+.dev-note { margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: var(--step--1); max-width: 80ch; }
+.dev-note strong { color: var(--ink); }
+
+/* Support */
+.sponsor { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px 32px; align-items: center; }
+.sponsor .links { margin-top: 0; }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var(--ink-soft); font-size: var(--step--1); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+
+@media (max-width: 920px) {
+  .hero, .bench, .form-demo, .sponsor { grid-template-columns: minmax(0, 1fr); }
+  .legend, .features { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .controls { grid-template-columns: minmax(0, 1fr); }
+  .popup-foot .msg--on, .send-notes:has(.msg--on) { flex: 1 1 100%; }
+  .hero { padding-block: 20px 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .btn--attention, .btn--attention::before, .btn--attention::after, .tip { animation: none !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#demo" data-i18n="skip">Skip to the demo</a>
+<div class="wrap">
+
+  <header class="topbar">
+    <a class="brand" href="./">
+      <svg width="30" height="30" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M3.5 6.5h21l-8 9.2v6.9l-5 2.4v-9.3z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <circle class="nugget" cx="9.7" cy="9.8" r="1.25"/><circle class="nugget" cx="14" cy="9.8" r="1.25"/><circle class="nugget" cx="18.3" cy="9.8" r="1.25"/>
+      </svg>
+      Goldpan
+    </a>
+    <div class="lang" role="group" aria-label="Language" data-needs-library>
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="it" aria-pressed="false">IT</button>
+    </div>
+  </header>
+
+  <main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div>
+      <h1 id="hero-title" data-i18n="h1">Pan a messy list. <em>Keep the gold.</em></h1>
+      <p class="lede" data-i18n="lede">Goldpan is an email field that takes many addresses at once. Paste an Excel column, a line from Outlook or any list: every address is checked straight away and turns green, yellow or red, and misspelled domains are fixed in one click.</p>
+      <ol class="steps">
+        <li><div><strong data-i18n="s1t">The workspace already has members</strong><span data-i18n="s1d">4 of its 12 seats are taken, and Goldpan knows who is already in.</span></div></li>
+        <li><div><strong data-i18n="s2t">Invite and paste</strong><span data-i18n="s2d">Press “Invite people” and paste a list, or use the example.</span></div></li>
+        <li><div><strong data-i18n="s3t">Check the colours, then invite</strong><span data-i18n="s3d">Green and yellow will be invited. Red ones can be fixed, or left out with “Ignore and send”.</span></div></li>
+      </ol>
+      <ul class="facts">
+        <li data-i18n="f1">No dependencies</li>
+        <li data-i18n="f2">~10 kB gzipped</li>
+        <li data-i18n="f3">TypeScript types</li>
+        <li data-i18n="f4">Accessible</li>
+        <li data-i18n="f5">8 languages</li>
+      </ul>
+      <div class="install">
+        <code id="install-cmd">npm install goldpan</code>
+        <button class="btn btn--copy" type="button" data-copy="#install-cmd" data-i18n="copy">Copy</button>
+      </div>
+      <div class="links">
+        <a class="btn" href="{{REPO_URL}}" target="_blank" rel="noopener" data-i18n="github">View on GitHub</a>
+        <a class="btn" href="https://www.npmjs.com/package/goldpan" target="_blank" rel="noopener">npm</a>
+        <a class="btn btn--sponsor" href="{{SPONSOR_URL}}" target="_blank" rel="noopener" data-sponsor>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.3 8.4 2.2 4.5 6 4.5c2.2 0 3.6 1.2 6 3.6 2.4-2.4 3.8-3.6 6-3.6 3.8 0 5.7 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg>
+          <span data-i18n="sponsorBtn">Sponsor</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- THE WORKSPACE: Goldpan opens in a popup on top of it -->
+    <div class="card list-card" id="demo" tabindex="-1" data-needs-library>
+      <div class="list-head">
+        <h2 id="list-title"><span data-i18n="listTitle">Team workspace</span><small id="list-count"></small></h2>
+        <button class="btn btn--primary btn--gold btn--big btn--attention" type="button" id="open-popup">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <span data-i18n="invite">Invite people</span>
+        </button>
+      </div>
+      <div class="seats-bar">
+        <label for="seats-total"><span data-i18n="seats">Total seats</span> <input id="seats-total" type="number" min="1" max="200" value="12"></label>
+        <div class="meter">
+          <span id="seats-text"></span>
+          <div class="meter-track" aria-hidden="true"><div class="meter-fill" id="seats-fill"></div></div>
+        </div>
+      </div>
+      <p class="toast" id="seats-toast" role="status"></p>
+      <div class="members" tabindex="0" role="region" aria-labelledby="list-title">
+        <table>
+          <thead><tr><th scope="col">#</th><th scope="col">Email</th><th scope="col" data-i18n="role">Role</th></tr></thead>
+          <tbody id="members"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <dialog class="popup" id="popup" aria-labelledby="popup-title">
+    <div class="popup-body">
+      <div class="popup-head">
+        <div>
+          <h3 id="popup-title" data-i18n="popupTitle">Invite people</h3>
+          <p id="popup-sub"></p>
+        </div>
+        <button class="icon-close" type="button" data-close aria-label="Close">×</button>
+      </div>
+      <input id="popup-input" type="text" aria-labelledby="popup-title">
+      <div class="samples" id="samples">
+        <p data-i18n="samplesHelp">No list at hand?</p>
+        <button class="btn" type="button" id="fill-sample" data-i18n="fillSample">Use an example</button>
+      </div>
+    </div>
+    <div class="popup-foot">
+      <p class="msg" id="popup-msg" role="alert"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg><span></span></p>
+      <button class="btn" type="button" data-close data-i18n="cancel">Cancel</button>
+      <button class="btn btn--primary btn--gold" type="button" id="popup-confirm" data-i18n="confirm">Invite</button>
+    </div>
+  </dialog>
+
+  <section aria-labelledby="states-title">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="howEyebrow">The three colours</span>
+      <h2 id="states-title" data-i18n="howTitle">Three colours, one rule: only red is left out</h2>
+      <p class="prose" data-i18n="howText">As soon as you paste them, the addresses take a colour. Green and yellow ones will be invited, red ones will not. Yellow is only a warning: worth a look before you send.</p>
+    </div>
+    <div class="legend">
+      <div class="card">
+        <h3><span class="dot dot--valid"></span><span data-i18n="lgValid">Valid</span></h3>
+        <p class="legend-sub" data-i18n="lgValidSub">Will be invited.</p>
+        <ul><li data-i18n="lgV1">Written correctly</li><li data-i18n="lgV2">On a domain that is not blocked</li><li data-i18n="lgV3">Not registered yet, and there is room</li></ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot dot--warning"></span><span data-i18n="lgWarn">To check</span></h3>
+        <p class="legend-sub" data-i18n="lgWarnSub">Will be invited, with a warning.</p>
+        <ul><li data-i18n="lgW1">Maybe a typo (hotmial.it): “Fix” corrects it in one click</li><li data-i18n="lgW2">Already registered: members, or people already invited</li><li data-i18n="lgW3">Flagged by a check you added</li></ul>
+      </div>
+      <div class="card">
+        <h3><span class="dot dot--invalid"></span><span data-i18n="lgErr">Rejected</span></h3>
+        <p class="legend-sub" data-i18n="lgErrSub">Left out.</p>
+        <ul><li data-i18n="lgE1">Not email addresses (no domain, a space…)</li><li data-i18n="lgE2">Blocked domain: throw-away mailboxes, or misspelled domains like gmal.com (with “Fix”)</li><li data-i18n="lgE3">No free seats left</li></ul>
+      </div>
+    </div>
+    <p class="legend-note" data-i18n="howNote">An address pasted twice is ignored: the first one stays and lights up for a moment.</p>
+  </section>
+
+  <section id="playground" aria-labelledby="pg-title">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="pgEyebrow">Playground</span>
+      <h2 id="pg-title" data-i18n="pgTitle">Change a setting and watch the colours change</h2>
+      <p class="prose" data-i18n="pgText">Each setting is an option of the library: press ⓘ to see what it does. The code below follows your choices.</p>
+    </div>
+
+    <div class="bench" data-needs-library>
+      <div class="card">
+        <label class="panel-title" for="pg-input" data-i18n="pgInput">Addresses to invite</label>
+        <input id="pg-input" type="text">
+        <div class="send-row">
+          <div class="send-notes">
+            <p class="msg" id="pg-msg" role="alert"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg><span></span></p>
+            <span class="pg-result" id="pg-result" role="status"></span>
+          </div>
+          <button class="btn btn--primary btn--gold" type="button" id="pg-confirm" data-i18n="confirm">Invite</button>
+        </div>
+      </div>
+      <div class="card controls" id="pg-controls">
+        <div class="control">
+          <div class="control-head"><label for="opt-max" data-i18n="cMax">Free seats</label><code>maxEmails</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-max" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-max" hidden data-i18n="tMax">How many addresses can still be accepted, green and yellow together. Usually the free seats of your list. Tick “no limit” to remove it.</p></div>
+          <div class="row-inline">
+            <input id="opt-max" type="number" min="0" max="999" value="6">
+            <label><input id="opt-unlimited" type="checkbox"> <span data-i18n="unlimited">no limit</span></label>
+          </div>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-onLimit" data-i18n="cOnLimit">When seats run out</label><code>onLimit</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-onLimit" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-onLimit" hidden data-i18n="tOnLimit">The addresses that do not fit are shown in red (“No place left”) or not added at all. When a seat frees up, the first red one waiting takes it.</p></div>
+          <select id="opt-onLimit"><option value="reject" data-i18n="oShowRed">Show them in red</option><option value="drop" data-i18n="oDrop">Do not add them</option></select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-duplicates" data-i18n="cDup">Same address twice</label><code>duplicates</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-dup" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-dup" hidden data-i18n="tDup">Ignore: the copy is not added and the first one lights up. Yellow: both stay and each takes a seat (e.g. two tickets for the same person). Red: the copy stays in the list as rejected.</p></div>
+          <select id="opt-duplicates"><option value="drop" data-i18n="oDupDrop">Ignore the copy</option><option value="warn" data-i18n="oDupWarn">Yellow: keep both</option><option value="reject" data-i18n="oDupReject">Red: reject the copy</option></select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-existing" data-i18n="cExisting">Address already registered</label><code>existing</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-existing" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-existing" hidden data-i18n="tExisting">What happens to the addresses already in your list (see “Addresses already registered” below). Yellow: invited, with a note. Red: rejected.</p></div>
+          <select id="opt-existing"><option value="warn" data-i18n="oYellow">Yellow: accept</option><option value="reject" data-i18n="oRed">Red: reject</option></select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-typoCheck" data-i18n="cTypo">Misspelled domain</label><code>typoCheck</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-typo" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-typo" hidden data-i18n="tTypo">Spots domains with a typo compared to a popular provider (hotmial.it → hotmail.it) and offers a “Fix” button. Real domains such as hotmail.be or aon.com are left alone. Yellow only warns; red rejects the address until it is fixed.</p></div>
+          <select id="opt-typoCheck"><option value="warn" data-i18n="oYellowFix">Yellow, with Fix</option><option value="reject" data-i18n="oRedFix">Red, with Fix</option><option value="false" data-i18n="oOff">Do not check</option></select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-editable" data-i18n="cEdit">Pencil to edit</label><code>editable</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-edit" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-edit" hidden data-i18n="tEdit">Which addresses show the pencil, to correct them in place. The ✕ to remove them is always there.</p></div>
+          <select id="opt-editable"><option value="all" data-i18n="oAll">On all</option><option value="invalid" data-i18n="oInvalid">Only on red ones</option><option value="valid" data-i18n="oValid">Only on green and yellow</option><option value="none" data-i18n="oNone">On none</option></select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-rejected" data-i18n="cRejected">With rejected addresses</label><code>rejected</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-rejected" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-rejected" hidden data-i18n="tRejected">What happens when you press “Invite” while red addresses are present. Warn: the first press shows them with a message, and the button turns into “Ignore and send”; the second press invites the others. Block: they are shown, and nobody is invited until they are fixed or removed. No warning: the others are invited straight away.</p></div>
+          <select id="opt-rejected"><option value="ask" data-i18n="oAsk">Warn, then “Ignore and send”</option><option value="block" data-i18n="oBlock">Block until fixed</option><option value="skip" data-i18n="oSkip">Invite the others, no warning</option></select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-locale" data-i18n="cLocale">Language</label><code>locale</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-locale" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-locale" hidden data-i18n="tLocale">Language of the texts in the field: filters, messages, buttons. 8 languages are included and more can be added.</p></div>
+          <select id="opt-locale">
+            <option value="en">English</option><option value="it">Italiano</option><option value="es">Español</option>
+            <option value="fr">Français</option><option value="de">Deutsch</option><option value="pt">Português</option>
+            <option value="zh">中文</option><option value="ja">日本語</option>
+          </select>
+        </div>
+        <div class="control">
+          <div class="control-head"><label for="opt-theme" data-i18n="cTheme">Theme</label><code>theme</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-theme" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-theme" hidden data-i18n="tTheme">Light, dark or automatic (follows the setting of the device). Every colour can also be changed with CSS variables.</p></div>
+          <select id="opt-theme"><option value="page" data-i18n="oPage">Like this page</option><option value="light" data-i18n="oLight">Light</option><option value="dark" data-i18n="oDark">Dark</option><option value="auto" data-i18n="oAuto">Automatic</option></select>
+        </div>
+        <div class="control control--wide">
+          <div class="control-head"><label for="opt-existing-list" data-i18n="cExistingList">Addresses already registered</label><code>existingEmails</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-existing-list" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-existing-list" hidden data-i18n="tExistingList">The people already in your list (members, earlier invites): they turn yellow with the note “Already registered”. On a real page they come from your data; here you can type them, separated by commas.</p></div>
+          <input id="opt-existing-list" type="text" value="noah@example.com, sara@example.org">
+        </div>
+        <div class="control control--wide">
+          <div class="control-head"><label for="opt-blocked" data-i18n="cBlocked">More blocked domains</label><code>blockedDomains</code><button class="info" type="button" aria-expanded="false" aria-controls="tip-blocked" aria-label="Explanation">i</button><p class="tip" role="tooltip" id="tip-blocked" hidden data-i18n="tBlocked">Addresses on these domains are always red. They add to the domains blocked out of the box: misspelled domains like gmal.com and throw-away mailboxes like mailinator.com. <code>*.domain.com</code> also blocks its sub-domains.</p></div>
+          <input id="opt-blocked" type="text" value="competitor.com, *.tempmail.dev">
+        </div>
+      </div>
+    </div>
+
+    <div class="dev" data-needs-library>
+      <div class="card">
+        <div class="panel-title"><span data-i18n="codeTitle">Code for these settings</span><button class="btn" type="button" data-copy="#pg-code" data-i18n="copy">Copy</button></div>
+        <pre class="code" id="pg-code" tabindex="0"></pre>
+      </div>
+      <details class="card">
+        <summary data-i18n="eventsTitle">Events (for developers)</summary>
+        <div class="panel-title"><span data-i18n="eventsText">What your code receives on every change</span><button class="btn" type="button" id="log-clear" data-i18n="clear">Clear</button></div>
+        <ol class="log" id="log" aria-live="off" tabindex="0"></ol>
+      </details>
+    </div>
+  </section>
+
+  <section aria-labelledby="form-title">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="formEyebrow">Plain HTML form</span>
+      <h2 id="form-title" data-i18n="formTitle">Also works on an ordinary form field</h2>
+      <p class="prose" data-i18n="formText">No list, no popup: it attaches to a field you already have. The field stays in the form and always holds the accepted addresses, ready to be sent. With red addresses, the first press shows them and the button turns into “Ignore and send”. A required field is never sent empty.</p>
+    </div>
+    <div class="form-demo" data-needs-library>
+      <form class="card" id="invite-form" novalidate>
+        <label for="invite-subject" data-i18n="subject">Subject</label>
+        <input id="invite-subject" name="subject" type="text" value="Team offsite, 14 November">
+        <label for="invite-to" data-i18n="inviteLabel">People to invite</label>
+        <input id="invite-to" name="to" type="text" required value="maya@example.com, tom@example.net">
+        <div class="send-row">
+          <div class="send-notes"><p class="msg" id="form-msg" role="alert"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg><span></span></p></div>
+          <button class="btn btn--primary btn--gold" type="submit" data-i18n="send">Invite</button>
+        </div>
+      </form>
+      <div class="card">
+        <div class="panel-title"><span data-i18n="sent">What the form sends</span></div>
+        <pre class="code" id="form-out" tabindex="0"></pre>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="feat-title">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="featEyebrow">What it does</span>
+      <h2 id="feat-title" data-i18n="featTitle">Built for real lists, the copied-and-pasted kind</h2>
+    </div>
+    <div class="features">
+      <div><h3 data-i18n="ft1">Starts from your data</h3><p data-i18n="fd1">It knows who is already registered and how many seats are left.</p></div>
+      <div><h3 data-i18n="ft2">Paste from anywhere</h3><p data-i18n="fd2">An Excel column, an Outlook line with names, a list with commas or semicolons: it reads them all.</p></div>
+      <div><h3 data-i18n="ft3">Fixes typos</h3><p data-i18n="fd3">It suggests gmail.com for gmial.com in one click, and leaves real domains such as hotmail.be or aon.com alone.</p></div>
+      <div><h3 data-i18n="ft4">Keeps unwanted domains out</h3><p data-i18n="fd4">Throw-away mailboxes, and the domains you choose, are rejected.</p></div>
+      <div><h3 data-i18n="ft5">Respects the seats</h3><p data-i18n="fd5">It never accepts more addresses than there are free seats. Remove one, and the first address left out takes its place.</p></div>
+      <div><h3 data-i18n="ft6">No double invites</h3><p data-i18n="fd6">An address pasted twice is ignored and the first one lights up: nobody gets two emails.</p></div>
+      <div><h3 data-i18n="ft7">Usable by everyone</h3><p data-i18n="fd7">It works with the keyboard alone, with screen readers, with Chinese and Japanese keyboards and in high-contrast mode.</p></div>
+      <div><h3 data-i18n="ft8">8 languages</h3><p data-i18n="fd8">English, Italian, Spanish, French, German, Portuguese, Chinese, Japanese. Adding one takes a single file.</p></div>
+      <div><h3 data-i18n="ft9">Fits your site</h3><p data-i18n="fd9">Colours change with CSS variables, light or dark follows the device, and it works with React, Vue or plain HTML.</p></div>
+    </div>
+    <p class="dev-note" data-i18n="devNote"><strong>For developers:</strong> one line of code to attach it to an existing field, about 10 kB, no other libraries, TypeScript types and events. Pasted text is never run as code.</p>
+  </section>
+
+  <!-- sponsor:start -->
+  <section aria-labelledby="sp-title">
+    <div class="sponsor">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="spEyebrow">Support</span>
+        <h2 id="sp-title" data-i18n="spTitle">Free and open source</h2>
+        <p class="prose" data-i18n="spText">Use it freely, in commercial projects too: it is MIT licensed. If it saves you time, a small contribution helps it grow.</p>
+      </div>
+      <div class="links">
+        <a class="btn btn--primary btn--big btn--sponsor" href="{{SPONSOR_URL}}" target="_blank" rel="noopener" data-sponsor>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.3 8.4 2.2 4.5 6 4.5c2.2 0 3.6 1.2 6 3.6 2.4-2.4 3.8-3.6 6-3.6 3.8 0 5.7 3.9 4 7.2C19.5 16.4 12 21 12 21z"/></svg>
+          <span data-i18n="spSponsor">Sponsor on GitHub</span>
+        </a>
+        <a class="btn btn--big" href="{{REPO_URL}}" target="_blank" rel="noopener" data-i18n="spStar">Star the repository</a>
+      </div>
+    </div>
+  </section>
+  <!-- sponsor:end -->
+  </main>
+
+  <footer>
+    <span data-i18n="footL">Goldpan · MIT License · © 2026 Michele Molinari</span>
+    <span data-i18n="footR">Example addresses use reserved domains (example.com, .org, .net) and deliberate misspellings.</span>
+  </footer>
+</div>
+
+<script src="goldpan.global.js"></script>
+<script src="locales/all.global.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const $ = (s) => document.querySelector(s);
+
+  // Links that the build could not fill in (no repository or funding in package.json) are hidden.
+  document.querySelectorAll('a[href*="{{"]').forEach((a) => { a.hidden = true; });
+
+  // =====================================================================
+  // Page texts. English is written in the HTML; Italian lives here.
+  // =====================================================================
+  const IT = {
+    skip: 'Vai alla demo',
+    h1: 'Setaccia una lista disordinata. <em>Tieni l’oro.</em>',
+    lede: 'Goldpan è un campo email che accetta molti indirizzi insieme. Incolla una colonna di Excel, una riga di Outlook o un elenco qualsiasi: ogni indirizzo viene controllato subito e diventa verde, giallo o rosso, e i domini scritti male si correggono con un clic.',
+    s1t: 'Il workspace ha già dei membri', s1d: '4 dei suoi 12 posti sono occupati, e Goldpan sa già chi c’è.',
+    s2t: 'Invita e incolla', s2d: 'Premi “Invita persone” e incolla una lista, oppure usa l’esempio.',
+    s3t: 'Controlla i colori e invita', s3d: 'Verdi e gialli verranno invitati. I rossi puoi correggerli, oppure lasciarli fuori con “Ignora e invia”.',
+    f1: 'Nessuna dipendenza', f2: '~10 kB compresso', f3: 'Tipi TypeScript', f4: 'Accessibile', f5: '8 lingue',
+    copy: 'Copia', github: 'Vedi su GitHub', sponsorBtn: 'Sostieni',
+    listTitle: 'Workspace del team', invite: 'Invita persone', seats: 'Posti totali', role: 'Ruolo',
+    popupTitle: 'Invita persone', samplesHelp: 'Non hai una lista a portata di mano?', fillSample: 'Usa un esempio',
+    cancel: 'Annulla', confirm: 'Invita',
+    howEyebrow: 'I tre colori', howTitle: 'Tre colori, una regola: solo il rosso resta fuori',
+    howText: 'Appena incolli gli indirizzi, ognuno prende un colore. Verdi e gialli verranno invitati, i rossi no. Il giallo è solo un avviso: meglio dare un’occhiata prima di inviare.',
+    lgValid: 'Validi', lgValidSub: 'Verranno invitati.', lgV1: 'Scritti correttamente', lgV2: 'Con un dominio non bloccato', lgV3: 'Non ancora registrati, e c’è posto',
+    lgWarn: 'Da controllare', lgWarnSub: 'Verranno invitati, con un avviso.', lgW1: 'Forse un errore di battitura (hotmial.it): “Correggi” lo sistema con un clic', lgW2: 'Già registrati: membri o persone già invitate', lgW3: 'Segnalati da un controllo aggiunto da te',
+    lgErr: 'Scartati', lgErrSub: 'Restano fuori.', lgE1: 'Non sono indirizzi email (manca il dominio, c’è uno spazio…)', lgE2: 'Dominio bloccato: caselle usa-e-getta o domini sbagliati come gmal.com (con “Correggi”)', lgE3: 'Nessun posto libero rimasto',
+    howNote: 'Un indirizzo incollato due volte viene ignorato: resta il primo, che si illumina per un attimo.',
+    pgEyebrow: 'Area di prova', pgTitle: 'Cambia un’impostazione e guarda come cambiano i colori',
+    pgText: 'Ogni impostazione è un’opzione della libreria: premi ⓘ per sapere cosa fa. Il codice qui sotto segue le tue scelte.',
+    pgInput: 'Indirizzi da invitare',
+    cMax: 'Posti liberi', tMax: 'Quanti indirizzi si possono ancora accettare, verdi e gialli insieme. Di solito sono i posti liberi. Spunta “nessun limite” per toglierlo.', unlimited: 'nessun limite',
+    cOnLimit: 'Quando i posti finiscono', tOnLimit: 'Gli indirizzi in più vengono mostrati in rosso (“Non c’è più posto”) oppure non vengono aggiunti. Quando si libera un posto, lo prende il primo rosso in attesa.',
+    oShowRed: 'Mostrali in rosso', oDrop: 'Non aggiungerli',
+    cDup: 'Stesso indirizzo due volte', tDup: 'Ignora: la copia non viene aggiunta e il primo si illumina. Giallo: restano entrambi e ognuno occupa un posto (es. due biglietti per la stessa persona). Rosso: la copia resta nella lista come scartata.',
+    oDupDrop: 'Ignora la copia', oDupWarn: 'Giallo: tienili entrambi', oDupReject: 'Rosso: scarta la copia',
+    cExisting: 'Indirizzo già registrato', tExisting: 'Cosa succede agli indirizzi già presenti nel tuo elenco (vedi “Indirizzi già registrati” qui sotto). Giallo: invitati, con una nota. Rosso: scartati.',
+    oYellow: 'Giallo: accetta', oRed: 'Rosso: scarta',
+    cTypo: 'Dominio scritto male', tTypo: 'Riconosce i domini con un errore di battitura rispetto a un provider noto (hotmial.it → hotmail.it) e propone il pulsante “Correggi”. I domini veri, come hotmail.be o aon.com, non vengono toccati. Giallo: avvisa soltanto. Rosso: scarta l’indirizzo finché non lo correggi.',
+    oYellowFix: 'Giallo, con Correggi', oRedFix: 'Rosso, con Correggi', oOff: 'Non controllare',
+    cEdit: 'Matita per modificare', tEdit: 'Su quali indirizzi compare la matita per correggerli sul posto. La ✕ per rimuoverli c’è sempre.',
+    oAll: 'Su tutti', oInvalid: 'Solo sui rossi', oValid: 'Solo su verdi e gialli', oNone: 'Su nessuno',
+    cRejected: 'Con indirizzi scartati', tRejected: 'Cosa succede premendo “Invita” quando ci sono indirizzi rossi. Avvisa: il primo clic li mostra con un messaggio e il pulsante diventa “Ignora e invia”; il secondo invita gli altri. Blocca: li mostra e nessuno viene invitato finché non sono corretti o rimossi. Senza avviso: gli altri vengono invitati subito.',
+    oAsk: 'Avvisa, poi “Ignora e invia”', oBlock: 'Blocca finché non sono corretti', oSkip: 'Invita gli altri senza avvisare',
+    cLocale: 'Lingua', tLocale: 'Lingua dei testi del campo: filtri, messaggi, pulsanti. Sono incluse 8 lingue e se ne possono aggiungere altre.',
+    cTheme: 'Tema', tTheme: 'Chiaro, scuro o automatico (segue l’impostazione del dispositivo). Ogni colore si può cambiare anche con le variabili CSS.',
+    oPage: 'Come questa pagina', oLight: 'Chiaro', oDark: 'Scuro', oAuto: 'Automatico',
+    cExistingList: 'Indirizzi già registrati', tExistingList: 'Le persone già presenti nel tuo elenco (membri, inviti già fatti): diventano gialle con la nota “Già registrato”. In una pagina vera arrivano dai tuoi dati; qui puoi scriverle tu, separate da virgole.',
+    cBlocked: 'Altri domini bloccati', tBlocked: 'Gli indirizzi di questi domini sono sempre rossi. Si aggiungono a quelli bloccati di serie: domini sbagliati come gmal.com e caselle usa-e-getta come mailinator.com. Con <code>*.dominio.it</code> blocchi anche i sottodomini.',
+    codeTitle: 'Codice per queste impostazioni', eventsTitle: 'Eventi (per sviluppatori)', eventsText: 'Cosa riceve il tuo codice a ogni modifica', clear: 'Svuota',
+    formEyebrow: 'Modulo HTML semplice', formTitle: 'Funziona anche su un normale campo di un modulo',
+    formText: 'Senza lista né popup: si collega a un campo che hai già. Il campo resta nel modulo e contiene sempre gli indirizzi accettati, pronti per l’invio. Con indirizzi rossi, il primo clic li mostra e il pulsante diventa “Ignora e invia”. Un campo obbligatorio non parte mai vuoto.',
+    subject: 'Oggetto', inviteLabel: 'Persone da invitare', send: 'Invita', sent: 'Cosa invia il modulo',
+    featEyebrow: 'Cosa fa', featTitle: 'Pensato per le liste vere, quelle copiate e incollate',
+    ft1: 'Parte dai tuoi dati', fd1: 'Sa già chi è registrato e quanti posti restano.',
+    ft2: 'Incolla da dove vuoi', fd2: 'Una colonna di Excel, una riga di Outlook con i nomi, una lista con virgole o punti e virgola: li legge tutti.',
+    ft3: 'Corregge gli errori di battitura', fd3: 'Propone gmail.com al posto di gmial.com con un clic, senza toccare i domini veri come hotmail.be o aon.com.',
+    ft4: 'Tiene fuori i domini indesiderati', fd4: 'Le caselle usa-e-getta e i domini che scegli tu vengono scartati.',
+    ft5: 'Rispetta i posti', fd5: 'Non accetta mai più indirizzi dei posti liberi. Se ne togli uno, il primo indirizzo rimasto fuori prende il suo posto.',
+    ft6: 'Niente inviti doppi', fd6: 'Un indirizzo incollato due volte viene ignorato e il primo si illumina: nessuno riceve due email.',
+    ft7: 'Usabile da tutti', fd7: 'Si usa anche solo con la tastiera, con i lettori di schermo, con le tastiere cinesi e giapponesi e in modalità ad alto contrasto.',
+    ft8: '8 lingue', fd8: 'Italiano, inglese, spagnolo, francese, tedesco, portoghese, cinese, giapponese. Per aggiungerne una basta un file.',
+    ft9: 'Si adatta al tuo sito', fd9: 'I colori si cambiano con le variabili CSS, il tema chiaro o scuro segue il dispositivo, e funziona con React, Vue o HTML semplice.',
+    devNote: '<strong>Per chi sviluppa:</strong> una riga di codice per collegarlo a un campo esistente, circa 10 kB, nessun’altra libreria, tipi TypeScript ed eventi. Il testo incollato non viene mai eseguito come codice.',
+    spEyebrow: 'Sostieni', spTitle: 'Gratuito e open source',
+    spText: 'Usalo liberamente, anche in progetti commerciali: la licenza è MIT. Se ti fa risparmiare tempo, un piccolo contributo lo aiuta a crescere.',
+    spSponsor: 'Sostieni su GitHub', spStar: 'Metti una stella al progetto',
+    footL: 'Goldpan · Licenza MIT · © 2026 Michele Molinari', footR: 'Gli indirizzi di esempio usano domini riservati (example.com, .org, .net) ed errori voluti.',
+  };
+  const EN = {};
+  document.querySelectorAll('[data-i18n]').forEach((el) => { EN[el.dataset.i18n] = el.innerHTML; });
+
+  // Texts produced by the script
+  const TEXT = {
+    en: {
+      copied: 'Copied', lang: 'Language', close: 'Close', free: 'free',
+      roles: { owner: 'Owner', member: 'Member', invited: 'Invited' },
+      people: (n) => ` · ${n} ${n === 1 ? 'member' : 'members'}`,
+      seatsText: (used, total) => `${used} of ${total} seats taken · ${total - used} free`,
+      popupSub: (free) => `${free} free ${free === 1 ? 'seat' : 'seats'} in the workspace`,
+      addOne: 'Add at least one address.',
+      pgReady: (n) => `Ready to invite: ${n} ${n === 1 ? 'address' : 'addresses'}`,
+      added: (n, left) => `${n} ${n === 1 ? 'person' : 'people'} invited · ${left} ${left === 1 ? 'seat' : 'seats'} left`,
+      inList: 'Already in the workspace', pastedTwice: 'Pasted twice', full: 'Workspace full.',
+      ready: 'Type, paste, edit or remove addresses. Events appear here.',
+      changed: (a, e) => `${a} accepted, ${e} rejected`, subject: 'Team offsite, 14 November',
+      blocked: '// Blocked: ', pressSend: '// Press "Invite"', maxAria: 'Free seats', info: 'Explanation',
+    },
+    it: {
+      copied: 'Copiato', lang: 'Lingua', close: 'Chiudi', free: 'libero',
+      roles: { owner: 'Proprietario', member: 'Membro', invited: 'Invitato' },
+      people: (n) => ` · ${n} ${n === 1 ? 'membro' : 'membri'}`,
+      seatsText: (used, total) => `${used} su ${total} posti occupati · ${total - used} ${total - used === 1 ? 'libero' : 'liberi'}`,
+      popupSub: (free) => `${free} ${free === 1 ? 'posto libero' : 'posti liberi'} nel workspace`,
+      addOne: 'Aggiungi almeno un indirizzo.',
+      pgReady: (n) => `Pronti per l’invito: ${n} ${n === 1 ? 'indirizzo' : 'indirizzi'}`,
+      added: (n, left) => `${n} ${n === 1 ? 'persona invitata' : 'persone invitate'} · ${left} ${left === 1 ? 'posto libero' : 'posti liberi'}`,
+      inList: 'Già nel workspace', pastedTwice: 'Incollato due volte', full: 'Workspace pieno.',
+      ready: 'Scrivi, incolla, modifica o rimuovi indirizzi. Gli eventi compaiono qui.',
+      changed: (a, e) => `${a} accettati, ${e} scartati`, subject: 'Ritiro del team, 14 novembre',
+      blocked: '// Bloccato: ', pressSend: '// Premi "Invita"', maxAria: 'Posti liberi', info: 'Spiegazione',
+    },
+  };
+  let lang = 'en';
+  try {
+    lang = localStorage.getItem('goldpan-demo-lang') || (navigator.language.toLowerCase().startsWith('it') ? 'it' : 'en');
+  } catch (e) { /* storage unavailable */ }
+  if (!TEXT[lang]) lang = 'en';
+  const T = () => TEXT[lang];
+  const textOf = (key) => (lang === 'it' && IT[key]) || EN[key];
+
+  // A message next to a send button: a red box with an icon, collapsed while there is nothing to say.
+  function setMessage(el, text) {
+    el.lastElementChild.textContent = text;
+    el.classList.toggle('msg--on', !!text);
+  }
+  // Rejected addresses after a confirmation: the message goes next to the send button,
+  // and the button says what the next press does ("Ignore and send").
+  function followConfirm(pan, button, showMessage) {
+    pan.on('confirm', ({ state, message, label }) => {
+      showMessage(message);
+      button.textContent = state === 'ask' ? label : textOf(button.dataset.i18n);
+    });
+  }
+
+  // =====================================================================
+  // Theme: widgets follow the page
+  // =====================================================================
+  const pageTheme = () => {
+    const attr = document.documentElement.getAttribute('data-theme');
+    if (attr === 'dark' || attr === 'light') return attr;
+    return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+  const themed = [];
+  function followPageTheme(pan, enabled = () => true) {
+    themed.push({ pan, enabled });
+    pan.setOptions({ theme: pageTheme() });
+  }
+  function syncThemes() {
+    themed.forEach(({ pan, enabled }) => enabled() && pan.setOptions({ theme: pageTheme() }));
+  }
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemes);
+  new MutationObserver(syncThemes).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  document.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const el = $(btn.dataset.copy);
+      const done = () => { const t = btn.innerHTML; btn.textContent = T().copied; setTimeout(() => (btn.innerHTML = t), 1400); };
+      const fallback = () => {
+        const r = document.createRange(); r.selectNodeContents(el);
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      };
+      try { navigator.clipboard.writeText(el.textContent).then(done, fallback); } catch (e) { fallback(); }
+    });
+  });
+
+  // Info buttons: the explanation floats over the page as a speech bubble.
+  // Hover or keyboard focus shows it; a click (or tap) keeps it open until you click elsewhere or press Esc.
+  const infos = [...document.querySelectorAll('.info')];
+  let pinned = null;
+  const tipOf = (btn) => document.getElementById(btn.getAttribute('aria-controls'));
+  function showTip(btn, show) {
+    tipOf(btn).hidden = !show;
+    btn.setAttribute('aria-expanded', String(show));
+  }
+  function closeAll(except) {
+    infos.forEach((b) => b !== except && showTip(b, false));
+    if (pinned !== except) pinned = null;
+  }
+  infos.forEach((btn) => {
+    btn.setAttribute('aria-describedby', btn.getAttribute('aria-controls'));
+    btn.addEventListener('mouseenter', () => { if (!pinned) { closeAll(btn); showTip(btn, true); } });
+    btn.addEventListener('mouseleave', () => { if (pinned !== btn) showTip(btn, false); });
+    btn.addEventListener('focus', () => { if (!pinned) { closeAll(btn); showTip(btn, true); } });
+    btn.addEventListener('blur', () => { if (pinned !== btn) showTip(btn, false); });
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (pinned === btn) { pinned = null; showTip(btn, false); return; }
+      closeAll(btn);
+      pinned = btn;
+      showTip(btn, true);
+    });
+  });
+  document.addEventListener('click', (e) => { if (pinned && !e.target.closest('.tip')) closeAll(null); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && infos.some((b) => !tipOf(b).hidden)) { const b = pinned; closeAll(null); if (b) b.focus(); }
+  });
+
+  // This file opened straight from the source folder: without the library there is nothing to show yet.
+  if (!window.Goldpan) {
+    showSetupNote();
+    return;
+  }
+
+  // =====================================================================
+  // 1. THE WORKSPACE + POPUP (main demo)
+  // =====================================================================
+  const membersBody = $('#members');
+  const seatsTotal = $('#seats-total');
+  const toast = $('#seats-toast');
+  const popup = $('#popup');
+  const popupMsg = $('#popup-msg');
+  const team = [
+    { email: 'ava.chen@example.com', role: 'owner' },
+    { email: 'noah.patel@example.com', role: 'member' },
+    { email: 'lucia.garcia@example.org', role: 'member' },
+    { email: 'kenji.sato@example.net', role: 'member' },
+  ];
+  // One example that shows every case: already a member, a certain and a probable misspelling,
+  // a duplicate, a malformed address, a throw-away mailbox and one address too many.
+  const SAMPLE = [
+    'Maya Cohen <maya.cohen@example.com>',
+    'Ava Chen <ava.chen@example.com>',
+    '"Okafor, Chidi" <chidi.okafor@gmal.com>',
+    'Léa Martin <lea.martin@yahooo.fr>',
+    'maya.cohen@example.com',
+    'Sam <sam@example>',
+    'Sales <sales@mailinator.com>',
+    'liam.oconnor@example.com', 'zoe.muller@example.org', 'omar.haddad@example.net',
+    'yuki.tanaka@example.com', 'ines.silva@example.org', 'tom.becker@example.com',
+  ].join('; ');
+
+  const total = () => Math.max(1, Number(seatsTotal.value) || 1);
+  const freeSeats = () => Math.max(0, total() - team.length);
+
+  // One table row per seat: number, address, role (or "free"); just-invited people stand out.
+  function renderTeam(freshFrom = Infinity) {
+    const rows = [];
+    for (let i = 0; i < Math.max(total(), team.length); i++) {
+      const member = team[i];
+      const tr = document.createElement('tr');
+      if (!member) tr.className = 'free';
+      else if (i >= freshFrom) tr.className = 'fresh';
+      for (const text of [String(i + 1), member ? member.email : '', member ? T().roles[member.role] : T().free]) {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.append(td);
+      }
+      if (member) tr.cells[1].title = member.email;
+      rows.push(tr);
+    }
+    membersBody.replaceChildren(...rows);
+    $('#list-count').textContent = T().people(team.length);
+    $('#seats-text').textContent = T().seatsText(team.length, total());
+    $('#seats-fill').style.width = Math.min(100, (team.length / total()) * 100) + '%';
+  }
+
+  const popupPan = new Goldpan('#popup-input', { maxEmails: freeSeats(), existingEmails: team.map((m) => m.email), inlineMessage: false });
+  followPageTheme(popupPan);
+  function syncPopup() {
+    popupPan.setOptions({
+      locale: lang,
+      maxEmails: freeSeats(),
+      existingEmails: team.map((m) => m.email),
+      messages: { existing: T().inList, duplicate: T().pastedTwice },
+    });
+    $('#popup-sub').textContent = T().popupSub(freeSeats());
+    // No free seat: nobody can be invited, so the message stays and the button cannot be pressed.
+    fullNote = freeSeats() === 0 ? T().full : '';
+    $('#popup-confirm').disabled = !!fullNote;
+    showPopupMessage();
+  }
+  // The example box is shown only while the popup is empty.
+  const samples = $('#samples');
+  const toggleSamples = () => { samples.hidden = popupPan.getEntries().length > 0; };
+  // The message next to the popup's buttons, most important first: a full workspace (it stays while the
+  // popup is open), rejected addresses after a press of "Invite", a note about the last press.
+  let fullNote = '';
+  let stopNote = '';
+  let pressNote = '';
+  function showPopupMessage() { setMessage(popupMsg, fullNote || stopNote || pressNote); }
+  followConfirm(popupPan, $('#popup-confirm'), (message) => { stopNote = message; showPopupMessage(); });
+  popupPan.on('change', () => { pressNote = ''; showPopupMessage(); toggleSamples(); });
+
+  $('#open-popup').addEventListener('click', (e) => {
+    e.currentTarget.classList.remove('btn--attention');
+    pressNote = '';
+    syncPopup();
+    toggleSamples();
+    popup.showModal();
+    popupPan.focus();
+  });
+  popup.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => popup.close()));
+  popup.addEventListener('close', () => popupPan.clear());
+  popup.addEventListener('click', (e) => { if (e.target === popup) popup.close(); }); // click on the backdrop
+
+  $('#fill-sample').addEventListener('click', () => {
+    popupPan.add(SAMPLE);
+    popupPan.focus();
+  });
+
+  $('#popup-confirm').addEventListener('click', () => {
+    // Red addresses: the first press shows them (message here, button "Ignore and send"), the next one goes on.
+    if (!popupPan.confirm()) return;
+    const emails = popupPan.getEmails();
+    if (!emails.length) { pressNote = T().addOne; showPopupMessage(); popupPan.focus(); return; }
+    const from = team.length;
+    emails.forEach((email) => team.push({ email, role: 'invited' }));
+    popup.close();
+    renderTeam(from);
+    toast.textContent = T().added(emails.length, freeSeats());
+    membersBody.rows[from]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+
+  seatsTotal.addEventListener('change', () => {
+    seatsTotal.value = Math.min(200, Math.max(team.length, Number(seatsTotal.value) || 1));
+    toast.textContent = '';
+    renderTeam();
+  });
+
+  // =====================================================================
+  // 2. PLAYGROUND
+  // =====================================================================
+  const split = (s) => s.split(/[,\s;]+/).map((x) => x.trim()).filter(Boolean);
+  const ctl = {
+    max: $('#opt-max'), unlimited: $('#opt-unlimited'), onLimit: $('#opt-onLimit'),
+    duplicates: $('#opt-duplicates'), existing: $('#opt-existing'), typoCheck: $('#opt-typoCheck'),
+    editable: $('#opt-editable'), rejected: $('#opt-rejected'), locale: $('#opt-locale'), theme: $('#opt-theme'),
+    existingList: $('#opt-existing-list'), blocked: $('#opt-blocked'),
+  };
+  function readOptions() {
+    return {
+      maxEmails: ctl.unlimited.checked ? null : Math.max(0, Number(ctl.max.value) || 0),
+      onLimit: ctl.onLimit.value,
+      duplicates: ctl.duplicates.value,
+      existing: ctl.existing.value,
+      typoCheck: ctl.typoCheck.value === 'false' ? false : ctl.typoCheck.value,
+      editable: ctl.editable.value,
+      rejected: ctl.rejected.value,
+      locale: ctl.locale.value,
+      theme: ctl.theme.value === 'page' ? pageTheme() : ctl.theme.value,
+      existingEmails: split(ctl.existingList.value),
+      blockedDomains: [...Goldpan.blockedDomains, ...split(ctl.blocked.value)],
+    };
+  }
+
+  ctl.locale.value = lang; // the playground starts in the language of the page
+  const pg = new Goldpan('#pg-input', { ...readOptions(), inlineMessage: false });
+  followPageTheme(pg, () => ctl.theme.value === 'page');
+  pg.add('ava@example.com, noah@example.com, ava@example.com, liam@gmal.com, lea@yahooo.fr, x@mailinator.com, eve@competitor.com, sara@example.org, ben@example.co.uk, nina@example.com, omar@example.com');
+
+  const logEl = $('#log');
+  const time = () => new Date().toLocaleTimeString([], { hour12: false });
+  function log(name, detail) {
+    const li = document.createElement('li');
+    const t = document.createElement('span'); t.className = 't'; t.textContent = time() + ' ';
+    const k = document.createElement('span'); k.className = 'k'; k.textContent = name + ' ';
+    li.append(t, k, document.createTextNode(detail));
+    logEl.prepend(li);
+    while (logEl.children.length > 60) logEl.lastChild.remove();
+  }
+  pg.on('add', ({ entries }) => log('add', entries.map((e) => `${e.email} → ${e.status}${e.reason ? ' (' + e.reason + ')' : ''}`).join(', ')));
+  pg.on('remove', ({ entry }) => log('remove', entry.email));
+  pg.on('update', ({ before, after }) => log('update', `${before.raw} → ${after.email} (${after.status})`));
+  pg.on('duplicate', ({ dropped }) => log('duplicate', dropped.join(', ')));
+  pg.on('limit', ({ rejected }) => log('limit', rejected.join(', ')));
+  pg.on('filter', ({ filter }) => log('filter', filter));
+  pg.on('change', ({ emails, counts }) => log('change', `${T().changed(counts.admitted, counts.invalid)} → getEmails(): [${emails.join(', ')}]`));
+  $('#log-clear').addEventListener('click', () => (logEl.textContent = ''));
+
+  // The button of the playground uses the list like a real page would.
+  const pgResult = $('#pg-result');
+  followConfirm(pg, $('#pg-confirm'), (message) => setMessage($('#pg-msg'), message));
+  pg.on('confirm', ({ state, message, label }) => log('confirm', state ? `${state}: ${message}${label ? ` → "${label}"` : ''}` : 'null'));
+  pg.on('change', () => (pgResult.textContent = ''));
+  $('#pg-confirm').addEventListener('click', () => {
+    const ok = pg.confirm();
+    log('confirm()', ok ? `true → getEmails(): [${pg.getEmails().join(', ')}]` : 'false');
+    pgResult.textContent = ok ? T().pgReady(pg.getEmails().length) : '';
+  });
+
+  function esc(s) { return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]); }
+  function renderCode(o) {
+    const s = (v) => `<span class="s">'${esc(String(v))}'</span>`;
+    const arr = (a) => '[' + a.map(s).join(', ') + ']';
+    const k = (w) => `<span class="k">${w}</span>`;
+    const lines = [];
+    const add = (key, v) => lines.push(`  ${k(key)}: ${v},`);
+    if (o.maxEmails !== null) add('maxEmails', o.maxEmails);
+    if (o.onLimit !== 'reject') add('onLimit', s(o.onLimit));
+    if (o.duplicates !== 'drop') add('duplicates', s(o.duplicates));
+    if (o.existingEmails.length) add('existingEmails', arr(o.existingEmails));
+    if (o.existing !== 'warn') add('existing', s(o.existing));
+    const extra = split(ctl.blocked.value);
+    if (extra.length) add('blockedDomains', '[...Goldpan.blockedDomains, ' + extra.map(s).join(', ') + ']');
+    if (o.typoCheck !== 'warn') add('typoCheck', o.typoCheck === false ? 'false' : s(o.typoCheck));
+    if (o.editable !== 'all') add('editable', s(o.editable));
+    if (o.rejected !== 'ask') add('rejected', s(o.rejected));
+    if (o.locale !== 'en') add('locale', s(o.locale));
+    if (ctl.theme.value !== 'page' && o.theme !== 'light') add('theme', s(o.theme));
+    lines.push('  <span class="c">// the message goes next to the button</span>');
+    add('inlineMessage', k('false'));
+    let imports = `${k('import')} Goldpan ${k('from')} ${s('goldpan')};\n`;
+    if (o.locale !== 'en') imports += `${k('import')} ${o.locale} ${k('from')} ${s('goldpan/locales/' + o.locale)};\n`;
+    imports += `${k('import')} ${s('goldpan/style.css')};\n\n`;
+    if (o.locale !== 'en') imports += `Goldpan.registerLocale(${s(o.locale)}, ${o.locale});\n\n`;
+    $('#pg-code').innerHTML =
+      imports +
+      `${k('const')} pan = ${k('new')} Goldpan(${s('#recipients')}, {\n${lines.join('\n') || '  <span class="c">// defaults</span>'}\n});\n\n` +
+      `pan.on(${s('change')}, ({ emails, hasErrors }) => {\n  <span class="c">// emails = accepted addresses (valid and to check)</span>\n});\n\n` +
+      `<span class="c">// Red addresses: the message next to the button, which says what the next press does</span>\n` +
+      `pan.on(${s('confirm')}, ({ state, message, label }) => {\n  note.textContent = message;\n  inviteButton.textContent = state === ${s('ask')} ? label : ${s('Invite')};\n});\n\n` +
+      `inviteButton.onclick = () => {\n  ${k('if')} (pan.confirm()) invite(pan.getEmails());\n};`;
+  }
+  function applyPlayground() {
+    ctl.max.disabled = ctl.unlimited.checked;
+    const o = readOptions();
+    pg.setOptions(o);
+    renderCode(o);
+  }
+  Object.values(ctl).forEach((el) => el.addEventListener(el.type === 'text' || el.type === 'number' ? 'input' : 'change', applyPlayground));
+
+  // =====================================================================
+  // 3. PLAIN FORM
+  // =====================================================================
+  const form = $('#invite-form');
+  const formPan = new Goldpan('#invite-to', { inlineMessage: false });
+  followPageTheme(formPan);
+  followConfirm(formPan, form.querySelector('[type="submit"]'), (message) => setMessage($('#form-msg'), message));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault(); // demo only: show what would be sent
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      $('#form-out').textContent = T().blocked + formPan.inputElement.validationMessage;
+      return;
+    }
+    $('#form-out').textContent = JSON.stringify(Object.fromEntries(new FormData(form)), null, 2);
+  });
+
+  // =====================================================================
+  // Language switch
+  // =====================================================================
+  function setLang(next) {
+    lang = next;
+    try { localStorage.setItem('goldpan-demo-lang', lang); } catch (e) { /* ignore */ }
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.dataset.i18n;
+      const html = lang === 'it' && IT[key] ? IT[key] : EN[key];
+      if (html !== undefined && el.innerHTML !== html) el.innerHTML = html;
+    });
+    document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    $('.lang').setAttribute('aria-label', T().lang);
+    popup.querySelector('.icon-close').setAttribute('aria-label', T().close);
+    document.querySelectorAll('.info').forEach((b) => b.setAttribute('aria-label', T().info));
+    ctl.max.setAttribute('aria-label', T().maxAria);
+    // Example texts follow the language unless the user has typed something else.
+    const subject = $('#invite-subject');
+    if (Object.values(TEXT).some((t) => t.subject === subject.value)) subject.value = T().subject;
+    const out = $('#form-out');
+    if (!out.textContent || Object.values(TEXT).some((t) => t.pressSend === out.textContent)) out.textContent = T().pressSend;
+    formPan.setOptions({ locale: lang });
+    syncPopup();
+    ctl.locale.value = lang;
+    applyPlayground();
+    renderTeam();
+    toast.textContent = '';
+  }
+  document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
+  setLang(lang);
+  log('ready', T().ready);
+
+  // =====================================================================
+  // Without the library: explain how to start the demo and grey out the parts that need it
+  // =====================================================================
+  function showSetupNote() {
+    const make = (tag, ...children) => {
+      const node = document.createElement(tag);
+      node.append(...children);
+      return node;
+    };
+    const code = (text) => make('code', text);
+    const nodeLink = make('a', 'Node.js');
+    nodeLink.href = 'https://nodejs.org';
+    const text = lang === 'it'
+      ? {
+          title: 'Questa è la pagina sorgente della demo',
+          intro: 'Prende vita quando la libreria è compilata. Per avviarla:',
+          steps: [
+            ['Installa ', nodeLink, ' 22.18 o successivo.'],
+            ['Nella cartella del progetto esegui ', code('npm install'), ' e poi ', code('npm run dev'), '.'],
+            ['La demo si apre su ', code('http://localhost:5173'), ' e si ricarica a ogni modifica del codice.'],
+          ],
+          offline: ['Senza server: dopo ', code('npm run build:site'), ' apri ', code('site/standalone.html'), ' con un doppio clic.'],
+        }
+      : {
+          title: 'This is the source page of the demo',
+          intro: 'It comes to life once the library is built. To start it:',
+          steps: [
+            ['Install ', nodeLink, ' 22.18 or newer.'],
+            ['In the project folder, run ', code('npm install'), ', then ', code('npm run dev'), '.'],
+            ['The demo opens at ', code('http://localhost:5173'), ' and reloads whenever you change the code.'],
+          ],
+          offline: ['No server? After ', code('npm run build:site'), ', double-click ', code('site/standalone.html'), '.'],
+        };
+    const title = make('h2', text.title);
+    title.id = 'setup-title';
+    const note = make('aside', title, make('p', text.intro), make('ol', ...text.steps.map((step) => make('li', ...step))), make('p', ...text.offline));
+    note.className = 'setup-note';
+    note.id = 'setup';
+    note.tabIndex = -1;
+    note.setAttribute('aria-labelledby', title.id);
+    $('main').before(note);
+    $('.skip').setAttribute('href', '#setup');
+    document.querySelectorAll('[data-needs-library]').forEach((part) => { part.inert = true; });
+  }
+})();
+</script>
+</body>
+</html>

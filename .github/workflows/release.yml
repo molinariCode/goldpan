@@ -1,0 +1,44 @@
+# Publishes to npm when a GitHub release is published, with npm trusted publishing (OIDC):
+# no token to store, and npm adds provenance on its own.
+#
+# One-time setup. npm only lets you set up trusted publishing for a package that already exists,
+# so the very first version is published by hand from your computer (npm login, then npm publish).
+# Then on npmjs.com: package settings → Trusted publishing → GitHub Actions,
+# this repository, workflow "release.yml".
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - name: Check that the release tag matches package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::The release tag is $GITHUB_REF_NAME, but package.json says $version. Make them match (for example v$version)."
+            exit 1
+          fi
+      - name: Publish, unless this version is already on npm
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$(npm view "$name@$version" version 2>/dev/null)" = "$version" ]; then
+            echo "$name@$version is already on npm: nothing to publish."
+          else
+            npm publish --access public
+          fi

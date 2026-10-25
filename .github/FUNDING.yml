@@ -1,0 +1,8 @@
+# Shows the "Sponsor" button on the repository page.
+# Once GitHub Sponsors is enabled on the profile, uncomment the github line below and add
+#   "funding": { "type": "github", "url": "https://github.com/sponsors/m86molinari" }
+# back to package.json: that also brings back the support section of the demo.
+# github: [m86molinari]
+# ko_fi: your-ko-fi-name
+# liberapay: your-liberapay-name
+# buy_me_a_coffee: your-bmc-name
