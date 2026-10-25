@@ -1,7 +1,7 @@
 {
   "name": "goldpan",
   "version": "1.0.0",
-  "description": "Paste a messy list of email addresses and keep the gold: every address is sorted into valid, warning or error, and misspelled domains get a one-click fix. Tiny, dependency-free, accessible multi-email input with TypeScript types.",
+  "description": "Add new email addresses to a list you already have and keep only the gold: people already in and duplicates spotted, typos fixed in one click, places left respected. Tiny, dependency-free, accessible multi-email input with TypeScript types.",
   "keywords": [
     "email",
     "email-input",

@@ -2,11 +2,11 @@
 
 # Goldpan
 
-**Pan a messy list of email addresses. Keep the gold.**
+**New addresses for your list. Only the gold gets in.**
 
-A tiny, dependency-free email input that takes many addresses at once and sorts every one of them into
-**valid**, **to check** or **rejected**, offers a one-click fix for misspelled domains (`gmial.com`),
-respects a limit of places and keeps your form in sync.
+A tiny, dependency-free email input for adding people to a list you already have: team members, subscribers,
+guests. Paste the new addresses from anywhere and it spots who is already in, drops duplicates, offers a one-click
+fix for misspelled domains (`gmial.com`), stops at the places left and keeps your form in sync.
 
 [![npm](https://img.shields.io/npm/v/goldpan.svg)](https://www.npmjs.com/package/goldpan)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/goldpan)](https://bundlephobia.com/package/goldpan)
@@ -24,9 +24,9 @@ respects a limit of places and keeps your form in sync.
 
 ## Why Goldpan
 
-Most "email tag inputs" only say whether an address is well formed. Real lists are messier: a column copied from
-Excel, a line from Outlook with names in it, the same person twice, people who are already members, a provider
-spelled wrong, more people than places left.
+Most "email tag inputs" only say whether an address is well formed. Adding people to a list you already have is
+messier: a column copied from Excel, a line from Outlook with names in it, the same person twice, people who are
+already members, a provider spelled wrong, more people than places left.
 
 Gold panning is the same job: you pour in gravel and keep the nuggets. Goldpan gives every address exactly **one
 status**:
@@ -41,13 +41,14 @@ status**:
 
 ## Features
 
+- **Starts from your list**: addresses already on it (members, previous invites) are flagged for a check or
+  refused (`existingEmails`)
 - **Reads real lists**: commas, semicolons, spaces, line breaks, Excel columns, `Name <address>`
   (Outlook, Gmail, Apple Mail), `mailto:` links, full-width separators (`，` `；` `、`)
 - **Typo check** for about 100 popular providers (`gmial.com`, `hotmial.com`, `gmail.con`…) with a one-click fix,
   tuned to leave real domains alone: regional ones like `hotmail.be` or `yahoo.in`, and companies such as `aon.com`
 - **Limit of places** with `maxEmails`: when a place frees up, the first address waiting moves in
 - **Duplicates** are dropped by default and the original is highlighted; or keep them with a warning, or refuse them
-- **Existing addresses** (members, previous invites) flagged for a check or refused
 - **Exclusion list** of domains, with `*.domain` wildcards, ready for large disposable-domain lists
 - **Your own rules** through a `validate` callback
 - **Inline editing**, one-click filters by status and a counter with correct plurals
