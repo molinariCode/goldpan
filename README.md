@@ -4,9 +4,9 @@
 
 **New addresses for your list. Only the gold gets in.**
 
-A tiny, dependency-free email input for adding people to a list you already have: team members, subscribers,
-guests. Paste the new addresses from anywhere and it spots who is already in, drops duplicates, offers a one-click
-fix for misspelled domains (`gmial.com`), stops at the places left and keeps your form in sync.
+A tiny, dependency-free multiple email input for adding people to a list you already have: team members,
+subscribers, guests. Paste the new addresses from anywhere and it spots who is already in, drops duplicates, offers a
+one-click fix for misspelled domains (`gmial.com`), stops at the places left and keeps your form in sync.
 
 [![npm](https://img.shields.io/npm/v/goldpan.svg)](https://www.npmjs.com/package/goldpan)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/goldpan)](https://bundlephobia.com/package/goldpan)
@@ -369,7 +369,7 @@ npm run dev          # builds the demo, opens it on http://localhost:5173, reloa
 npm test             # unit tests (Vitest + jsdom)
 npm run typecheck
 npm run build        # dist/: ESM, CommonJS, <script> builds, types, CSS
-npm run build:site   # site/: the demo as published, plus site/standalone.html (one file, works offline)
+npm run build:site   # site/: the demo as published (English, Italian in site/it/, sitemap), plus site/standalone.html (works offline)
 npm run lint:package
 ```
 
