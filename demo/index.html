@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Goldpan · new addresses for your list, only the gold gets in</title>
-<meta name="description" content="Goldpan is a tiny, dependency-free email input for adding people to a list you already have: it spots who is already in, drops duplicates, fixes misspelled domains in one click and keeps to the places left.">
+<title data-i18n="metaTitle">Goldpan: multiple email input with typo fix (JavaScript)</title>
+<meta name="description" content="Free, open-source multiple email input. Paste a whole list: Goldpan flags who is already in, drops duplicates, fixes typos and respects your seat limit.">
 <meta name="theme-color" content="#0b6e4f">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="canonical" href="{{HOMEPAGE}}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Goldpan">
 <meta property="og:title" content="Goldpan · new addresses for your list, only the gold gets in">
+<meta property="og:locale" content="en_US">
 <meta property="og:description" content="Add people to a list you already have: Goldpan spots who is already in, drops duplicates, fixes typos in one click and keeps to the places left.">
 <meta property="og:url" content="{{HOMEPAGE}}">
 <meta property="og:image" content="{{HOMEPAGE}}og.png">
@@ -19,6 +20,7 @@
 <meta property="og:image:alt" content="Goldpan sorting pasted email addresses into valid, warning and error">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/familjen-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="goldpan.css">
 <style>
 /* Fonts are served from this site (no third-party requests). SIL Open Font License, see fonts/OFL.txt */
@@ -407,7 +409,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   <section class="hero" aria-labelledby="hero-title">
     <div>
       <h1 id="hero-title" data-i18n="h1">New addresses for your list. <em>Only the gold gets in.</em></h1>
-      <p class="lede" data-i18n="lede">Goldpan is an email field for adding people to a list you already have: team members, subscribers, guests. Paste the new addresses from Excel, Outlook or anywhere: it spots who is already in, drops duplicates, fixes misspelled domains in one click and stops at the places left.</p>
+      <p class="lede" data-i18n="lede">Goldpan is a multiple email input for adding people to a list you already have: team members, subscribers, guests. Paste the new addresses from Excel, Outlook or anywhere: it spots who is already in, drops duplicates, fixes misspelled domains in one click and stops at the places left.</p>
       <ol class="steps">
         <li><div><strong data-i18n="s1t">The workspace already has members</strong><span data-i18n="s1d">4 of its 12 seats are taken, and Goldpan knows who is already in.</span></div></li>
         <li><div><strong data-i18n="s2t">Invite and paste</strong><span data-i18n="s2d">Press “Invite people” and paste a list, or use the example.</span></div></li>
@@ -664,10 +666,10 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   </footer>
 </div>
 
-<script src="goldpan.global.js"></script>
-<script src="locales/all.global.js"></script>
+<script src="goldpan.global.js" defer></script>
+<script src="locales/all.global.js" defer></script>
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', () => {
   'use strict';
 
   const $ = (s) => document.querySelector(s);
@@ -681,7 +683,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   const IT = {
     skip: 'Vai alla demo',
     h1: 'Nuovi indirizzi per la tua lista. <em>Entra solo l’oro.</em>',
-    lede: 'Goldpan è un campo email per aggiungere persone a una lista che hai già: membri di un team, iscritti, invitati. Incolla i nuovi indirizzi da Excel, Outlook o dove vuoi: riconosce chi c’è già, ignora i doppioni, corregge i domini scritti male con un clic e si ferma ai posti liberi.',
+    lede: 'Goldpan è un campo email che accetta più indirizzi insieme, pensato per aggiungere persone a una lista che hai già: membri di un team, iscritti, invitati. Incolla i nuovi indirizzi da Excel, Outlook o dove vuoi: riconosce chi c’è già, ignora i doppioni, corregge i domini scritti male con un clic e si ferma ai posti liberi.',
     s1t: 'Il workspace ha già dei membri', s1d: '4 dei suoi 12 posti sono occupati, e Goldpan sa già chi c’è.',
     s2t: 'Invita e incolla', s2d: 'Premi “Invita persone” e incolla una lista, oppure usa l’esempio.',
     s3t: 'Controlla i colori e invita', s3d: 'Verdi e gialli verranno invitati. I rossi puoi correggerli, oppure lasciarli fuori con “Ignora e invia”.',
@@ -735,10 +737,16 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     spEyebrow: 'Sostieni', spTitle: 'Gratuito e open source',
     spText: 'Usalo liberamente, anche in progetti commerciali: la licenza è MIT. Se ti fa risparmiare tempo, un piccolo contributo lo aiuta a crescere.',
     spSponsor: 'Sostieni su GitHub', spStar: 'Metti una stella al progetto',
+    metaTitle: 'Goldpan: inserisci più indirizzi email senza errori',
+    metaDesc: 'Campo email gratuito e open source: incolli tutta la lista e Goldpan segnala chi è già iscritto, ignora i doppioni, corregge i refusi e rispetta i posti.',
+    ogTitle: 'Goldpan · nuovi indirizzi per la tua lista, entra solo l’oro',
+    ogDesc: 'Aggiungi persone a una lista che hai già: Goldpan riconosce chi c’è già, ignora i doppioni, corregge i refusi con un clic e si ferma ai posti liberi.',
+    ogAlt: 'Goldpan divide gli indirizzi incollati in validi, da controllare e scartati',
     footL: 'Goldpan · Licenza MIT · © 2026 Michele Molinari', footR: 'Gli indirizzi di esempio usano domini riservati (example.com, .org, .net) ed errori voluti.',
   };
-  const EN = {};
-  document.querySelectorAll('[data-i18n]').forEach((el) => { EN[el.dataset.i18n] = el.innerHTML; });
+  const saved = document.getElementById('i18n-en');
+  const EN = saved ? JSON.parse(saved.textContent) : {};
+  if (!saved) document.querySelectorAll('[data-i18n]').forEach((el) => { EN[el.dataset.i18n] = el.innerHTML; });
 
   // Texts produced by the script
   const TEXT = {
@@ -773,7 +781,8 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
   };
   let lang = 'en';
   try {
-    lang = localStorage.getItem('goldpan-demo-lang') || (navigator.language.toLowerCase().startsWith('it') ? 'it' : 'en');
+    lang = document.documentElement.dataset.pageLang
+      || localStorage.getItem('goldpan-demo-lang') || (navigator.language.toLowerCase().startsWith('it') ? 'it' : 'en');
   } catch (e) { /* storage unavailable */ }
   if (!TEXT[lang]) lang = 'en';
   const T = () => TEXT[lang];
@@ -1174,7 +1183,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     $('.skip').setAttribute('href', '#setup');
     document.querySelectorAll('[data-needs-library]').forEach((part) => { part.inert = true; });
   }
-})();
+});
 </script>
 </body>
 </html>
