@@ -16,7 +16,7 @@ one-click fix for misspelled domains (`gmial.com`), stops at the places left and
 
 **[Live demo & playground →](https://molinaricode.github.io/goldpan/)**
 
-![Goldpan sorting a pasted list into valid, warning and error rows](docs/screenshot.png)
+![Goldpan sorting a pasted list: each address on its own card with a status icon, the message below and the Fix, edit and remove buttons](docs/screenshot.png)
 
 </div>
 
@@ -123,7 +123,7 @@ The original input is hidden and kept in sync (`"a@example.com, b@example.com"`)
 | `rejected` | `'ask' \| 'block' \| 'skip'` | `'ask'` | With rejected addresses, what `confirm()` and a form submit do: show them and go on at the next press, stop until they are fixed, or go on without them. [See below](#sending-with-rejected-addresses). |
 | `inlineMessage` | `boolean` | `true` | Show the message about rejected addresses inside the widget; turn it off to show it next to your button. |
 | `editable` | `'all' \| 'valid' \| 'invalid' \| 'none'` | `'all'` | Rows that show the edit button. |
-| `showCounter` | `boolean` | `true` | Show the counter above the list. |
+| `showCounter` | `boolean` | `true` | Show the counter next to the filters. |
 | `theme` | `'light' \| 'dark' \| 'auto'` | `'light'` | `auto` follows the operating system. |
 | `className` | `string` | – | Extra class on the root element. |
 | `disabled` | `boolean` | original input | Disable the widget. |
@@ -320,13 +320,15 @@ All classes start with `goldpan`. Customise with CSS variables:
 ```css
 .goldpan {
   --goldpan-font: 'Inter', sans-serif;
+  --goldpan-address-font: ui-monospace, monospace; /* addresses and text box: typos stand out */
   --goldpan-font-size: 1rem;                 /* every size of the widget follows it */
-  --goldpan-radius: 6px;                     /* corners of the address cards */
-  --goldpan-list-max-height: 240px;
-  --goldpan-focus: #7c3aed;                  /* focus ring, highlighted card */
-  --goldpan-fg: #1b1f24;   --goldpan-muted: #5b6470;
-  --goldpan-bg: #ffffff;   --goldpan-row: #f5f6f8;  /* text box, address cards */
-  --goldpan-line: #dfe3e8; --goldpan-edge: #838d99; /* card border, text box border */
+  --goldpan-radius: 6px;                     /* corners of the cards and of the text box */
+  --goldpan-list-max-height: 240px;          /* the list scrolls past it */
+  --goldpan-focus: #0b6e4f;                  /* focus ring, highlighted card */
+  --goldpan-accent: #0b6e4f; --goldpan-accent-fg: #ffffff; --goldpan-accent-soft: #e1f0ea; /* chosen filter, Fix button */
+  --goldpan-fg: #16202a;   --goldpan-muted: #52606d;
+  --goldpan-bg: #ffffff;   --goldpan-row: #f3f5f4;  /* text box and cards, filter bar */
+  --goldpan-line: #d7dedb; --goldpan-edge: #7f8f89; /* card border, text box border */
   --goldpan-valid: #0f7a5a;   --goldpan-valid-soft: #e6f4ee;
   --goldpan-warning: #8a5a00; --goldpan-warning-soft: #fff4d6; --goldpan-warning-line: #e8c36b;
   --goldpan-invalid: #b42318; --goldpan-invalid-soft: #fef0ee; --goldpan-invalid-line: #f1a69d;

@@ -81,6 +81,8 @@ export interface GoldpanMessages {
   warning: string;
   /** Name of the `invalid` filter. */
   invalid: string;
+  /** Name of the filter that shows every address. */
+  all: string;
   /** Accessible name of the group of filters. */
   filterGroup: string;
   /** Counter without a limit. `{count}` = accepted addresses. */

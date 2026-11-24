@@ -62,6 +62,11 @@
   --step-2: 1.6rem;
   --step-3: clamp(2.2rem, 5vw, 3.4rem);
   --radius: 14px;
+
+  /* Status colours, the same as the widget's */
+  --st-valid: #0f7a5a;
+  --st-warning: #8a5a00;
+  --st-invalid: #b42318;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -69,6 +74,7 @@
     --accent: #5fd0a4; --accent-soft: #15302a; --gold: #f0c05a; --gold-ink: #f0c05a;
     --mesh: rgba(228, 235, 232, 0.07); --scrim: rgba(0, 0, 0, 0.6); --error: #ff8a95;
     --code-bg: #0a0f12; --code-ink: #dbe6e1; --code-dim: #7d918a; --code-key: #8fd6b6; --code-str: #f2c879;
+    --st-valid: #4cc39a; --st-warning: #f2c14e; --st-invalid: #ff8b80;
     color-scheme: dark;
   }
 }
@@ -77,6 +83,7 @@
   --accent: #5fd0a4; --accent-soft: #15302a; --gold: #f0c05a; --gold-ink: #f0c05a;
   --mesh: rgba(228, 235, 232, 0.07); --scrim: rgba(0, 0, 0, 0.6); --error: #ff8a95;
   --code-bg: #0a0f12; --code-ink: #dbe6e1; --code-dim: #7d918a; --code-key: #8fd6b6; --code-str: #f2c879;
+  --st-valid: #4cc39a; --st-warning: #f2c14e; --st-invalid: #ff8b80;
   color-scheme: dark;
 }
 
@@ -248,9 +255,12 @@ code, pre, kbd { font-family: var(--font-mono); font-size: 0.88em; }
 .members .fresh td { background: var(--accent-soft); }
 .members .fresh td:last-child { color: var(--accent); font-weight: 600; }
 
+/* Every Goldpan on the page: addresses in the monospaced font, where typos stand out */
+.goldpan { --goldpan-address-font: var(--font-mono); }
+
 /* ---------- Popup ---------- */
 dialog.popup {
-  width: min(560px, calc(100vw - 32px));
+  width: min(600px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px);
   padding: 0;
   border: 1px solid var(--line);
@@ -260,23 +270,31 @@ dialog.popup {
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.45);
 }
 dialog.popup::backdrop { background: var(--scrim); }
-.popup-body { display: grid; gap: 14px; padding: 20px; }
+.popup-body { display: grid; gap: 16px; padding: 20px 24px; }
 .popup-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
-.popup-head h3 { font-size: var(--step-1); }
-.popup-head p { color: var(--ink-soft); font-size: var(--step--1); margin-top: 4px; }
-.icon-close { border: 0; background: transparent; color: var(--ink-soft); font-size: 1.4rem; line-height: 1; padding: 4px 8px; border-radius: 8px; cursor: pointer; }
+.popup-head h3 { font-size: 1.375rem; }
+.popup-head p { color: var(--ink-soft); font-size: var(--step--1); margin-top: 6px; }
+.icon-close { display: grid; place-items: center; flex: none; width: 40px; height: 40px; margin: -6px -8px 0 0; border: 0; border-radius: 10px; background: transparent; color: var(--ink-soft); cursor: pointer; }
 .icon-close:hover { background: var(--bg); color: var(--ink); }
+.popup-field { display: grid; gap: 6px; min-width: 0; }
+.popup-field label { font-size: var(--step--1); font-weight: 600; }
 #popup .goldpan { --goldpan-list-max-height: 280px; }
-.samples { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 12px; border: 1px dashed var(--line); border-radius: 10px; }
+.samples { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 12px 12px 12px 16px; border: 1px dashed color-mix(in srgb, var(--ink-soft) 30%, var(--line)); border-radius: 10px; }
 .samples p { font-size: var(--step--1); color: var(--ink-soft); }
 .samples[hidden] { display: none; }
-.popup-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line); }
+.popup-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 12px; padding: 14px 24px; border-top: 1px solid var(--line); background: var(--bg); border-radius: 0 0 16px 16px; }
+/* Left of the buttons: the seats this invitation takes, or the message when there is one */
+.popup-status { flex: 1 1 200px; display: grid; gap: 6px; min-width: 0; }
+.popup-seats { display: grid; gap: 6px; font-size: var(--step--1); color: var(--ink-soft); }
+.popup-seats strong { color: var(--ink); }
+.popup-meter { width: min(200px, 100%); height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.popup-meter > div { width: 0; height: 100%; border-radius: inherit; background: var(--gold); transition: width .2s ease; }
+.popup-status:has(.msg--on) .popup-seats { display: none; }
 /* Message next to a send button (rejected addresses, a full workspace…): a red box, collapsed while empty */
 .msg { display: inline-flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: var(--step--1); font-weight: 600; color: var(--ink); }
 .msg > svg { display: none; flex: none; color: var(--error); }
 .msg--on { padding: 7px 12px; border: 1px solid color-mix(in srgb, var(--error) 45%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--error) 9%, var(--paper)); }
 .msg--on > svg { display: block; }
-.popup-foot .msg { margin-right: auto; }
 /* A send button with its message on the left, like the popup's footer */
 .send-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px 12px; }
 .send-notes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; margin-right: auto; }
@@ -290,10 +308,10 @@ section { padding-block: 48px; border-top: 1px solid var(--line); }
 .legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .legend .card { display: grid; gap: 8px; align-content: start; }
 .legend h3 { display: flex; align-items: center; gap: 8px; }
-.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
-.dot--valid { background: #0f7a5a; }
-.dot--warning { background: #d99a00; }
-.dot--invalid { background: #b42318; }
+.st-icon { flex: none; width: 20px; height: 20px; }
+.st-icon--valid { color: var(--st-valid); }
+.st-icon--warning { color: var(--st-warning); }
+.st-icon--invalid { color: var(--st-invalid); }
 .legend ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: var(--step--1); }
 .legend-sub { font-size: var(--step--1); font-weight: 600; }
 .legend-note { margin-top: 16px; color: var(--ink-soft); font-size: var(--step--1); }
@@ -378,7 +396,7 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
 }
 @media (max-width: 560px) {
   .controls { grid-template-columns: minmax(0, 1fr); }
-  .popup-foot .msg--on, .send-notes:has(.msg--on) { flex: 1 1 100%; }
+  .popup-status, .send-notes:has(.msg--on) { flex: 1 1 100%; }
   .hero { padding-block: 20px 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -469,18 +487,27 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
           <h3 id="popup-title" data-i18n="popupTitle">Invite people</h3>
           <p id="popup-sub"></p>
         </div>
-        <button class="icon-close" type="button" data-close aria-label="Close">×</button>
+        <button class="icon-close" type="button" data-close aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
-      <input id="popup-input" type="text" aria-labelledby="popup-title">
+      <div class="popup-field">
+        <label for="popup-input" data-i18n="popupLabel">Email addresses</label>
+        <input id="popup-input" type="text">
+      </div>
       <div class="samples" id="samples">
         <p data-i18n="samplesHelp">No list at hand?</p>
         <button class="btn" type="button" id="fill-sample" data-i18n="fillSample">Use an example</button>
       </div>
     </div>
     <div class="popup-foot">
-      <p class="msg" id="popup-msg" role="alert"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg><span></span></p>
-      <button class="btn" type="button" data-close data-i18n="cancel">Cancel</button>
-      <button class="btn btn--primary btn--gold" type="button" id="popup-confirm" data-i18n="confirm">Invite</button>
+      <div class="popup-status">
+        <div class="popup-seats">
+          <span id="popup-seats"></span>
+          <div class="popup-meter" aria-hidden="true"><div id="popup-meter"></div></div>
+        </div>
+        <p class="msg" id="popup-msg" role="alert"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg><span></span></p>
+      </div>
+      <button class="btn btn--big" type="button" data-close data-i18n="cancel">Cancel</button>
+      <button class="btn btn--primary btn--gold btn--big" type="button" id="popup-confirm" data-i18n="confirm">Invite</button>
     </div>
   </dialog>
 
@@ -492,17 +519,17 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; color: var
     </div>
     <div class="legend">
       <div class="card">
-        <h3><span class="dot dot--valid"></span><span data-i18n="lgValid">Valid</span></h3>
+        <h3><svg class="st-icon st-icon--valid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span data-i18n="lgValid">Valid</span></h3>
         <p class="legend-sub" data-i18n="lgValidSub">Will be invited.</p>
         <ul><li data-i18n="lgV1">Written correctly</li><li data-i18n="lgV2">On a domain that is not blocked</li><li data-i18n="lgV3">Not registered yet, and there is room</li></ul>
       </div>
       <div class="card">
-        <h3><span class="dot dot--warning"></span><span data-i18n="lgWarn">To check</span></h3>
+        <h3><svg class="st-icon st-icon--warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4L21 19.5H3z"/><path d="M12 10v4"/><path d="M12 17v.01"/></svg><span data-i18n="lgWarn">To check</span></h3>
         <p class="legend-sub" data-i18n="lgWarnSub">Will be invited, with a warning.</p>
         <ul><li data-i18n="lgW1">Maybe a typo (hotmial.it): “Fix” corrects it in one click</li><li data-i18n="lgW2">Already registered: members, or people already invited</li><li data-i18n="lgW3">Flagged by a check you added</li></ul>
       </div>
       <div class="card">
-        <h3><span class="dot dot--invalid"></span><span data-i18n="lgErr">Rejected</span></h3>
+        <h3><svg class="st-icon st-icon--invalid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg><span data-i18n="lgErr">Rejected</span></h3>
         <p class="legend-sub" data-i18n="lgErrSub">Left out.</p>
         <ul><li data-i18n="lgE1">Not email addresses (no domain, a space…)</li><li data-i18n="lgE2">Blocked domain: throw-away mailboxes, or misspelled domains like gmal.com (with “Fix”)</li><li data-i18n="lgE3">No free seats left</li></ul>
       </div>
@@ -690,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
     f1: 'Nessuna dipendenza', f2: '~10 kB compresso', f3: 'Tipi TypeScript', f4: 'Accessibile', f5: '8 lingue',
     copy: 'Copia', github: 'Vedi su GitHub', sponsorBtn: 'Sostieni',
     listTitle: 'Workspace del team', invite: 'Invita persone', seats: 'Posti totali', role: 'Ruolo',
-    popupTitle: 'Invita persone', samplesHelp: 'Non hai una lista a portata di mano?', fillSample: 'Usa un esempio',
+    popupTitle: 'Invita persone', popupLabel: 'Indirizzi email', samplesHelp: 'Non hai una lista a portata di mano?', fillSample: 'Usa un esempio',
     cancel: 'Annulla', confirm: 'Invita',
     howEyebrow: 'I tre colori', howTitle: 'Tre colori, una regola: solo il rosso resta fuori',
     howText: 'Appena incolli gli indirizzi, ognuno prende un colore. Verdi e gialli verranno invitati, i rossi no. Il giallo è solo un avviso: meglio dare un’occhiata prima di inviare.',
@@ -756,6 +783,8 @@ document.addEventListener('DOMContentLoaded', () => {
       people: (n) => ` · ${n} ${n === 1 ? 'member' : 'members'}`,
       seatsText: (used, total) => `${used} of ${total} seats taken · ${total - used} free`,
       popupSub: (free) => `${free} free ${free === 1 ? 'seat' : 'seats'} in the workspace`,
+      seatsUse: (n, max) => `${n} of ${max} ${max === 1 ? 'seat' : 'seats'}`,
+      seatsLeft: (k) => (k === 0 ? 'none left' : `${k} will be left`),
       addOne: 'Add at least one address.',
       pgReady: (n) => `Ready to invite: ${n} ${n === 1 ? 'address' : 'addresses'}`,
       added: (n, left) => `${n} ${n === 1 ? 'person' : 'people'} invited · ${left} ${left === 1 ? 'seat' : 'seats'} left`,
@@ -770,6 +799,8 @@ document.addEventListener('DOMContentLoaded', () => {
       people: (n) => ` · ${n} ${n === 1 ? 'membro' : 'membri'}`,
       seatsText: (used, total) => `${used} su ${total} posti occupati · ${total - used} ${total - used === 1 ? 'libero' : 'liberi'}`,
       popupSub: (free) => `${free} ${free === 1 ? 'posto libero' : 'posti liberi'} nel workspace`,
+      seatsUse: (n, max) => `${n} su ${max} ${max === 1 ? 'posto' : 'posti'}`,
+      seatsLeft: (k) => (k === 0 ? 'nessuno resterà libero' : k === 1 ? 'ne resterà 1' : `ne resteranno ${k}`),
       addOne: 'Aggiungi almeno un indirizzo.',
       pgReady: (n) => `Pronti per l’invito: ${n} ${n === 1 ? 'indirizzo' : 'indirizzi'}`,
       added: (n, left) => `${n} ${n === 1 ? 'persona invitata' : 'persone invitate'} · ${left} ${left === 1 ? 'posto libero' : 'posti liberi'}`,
@@ -924,7 +955,10 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#seats-fill').style.width = Math.min(100, (team.length / total()) * 100) + '%';
   }
 
-  const popupPan = new Goldpan('#popup-input', { maxEmails: freeSeats(), existingEmails: team.map((m) => m.email), inlineMessage: false });
+  // The counter of the popup is in its footer, with a meter: the widget's own is turned off.
+  const popupPan = new Goldpan('#popup-input', {
+    maxEmails: freeSeats(), existingEmails: team.map((m) => m.email), inlineMessage: false, showCounter: false,
+  });
   followPageTheme(popupPan);
   function syncPopup() {
     popupPan.setOptions({
@@ -934,10 +968,22 @@ document.addEventListener('DOMContentLoaded', () => {
       messages: { existing: T().inList, duplicate: T().pastedTwice },
     });
     $('#popup-sub').textContent = T().popupSub(freeSeats());
+    showSeats();
     // No free seat: nobody can be invited, so the message stays and the button cannot be pressed.
     fullNote = freeSeats() === 0 ? T().full : '';
     $('#popup-confirm').disabled = !!fullNote;
     showPopupMessage();
+  }
+  // Footer: the seats this invitation takes ("8 of 12 seats · 4 will be left") and a meter in gold.
+  function showSeats() {
+    const max = freeSeats();
+    const { admitted } = popupPan.getCounts();
+    const strong = document.createElement('strong');
+    strong.textContent = T().seatsUse(admitted, max);
+    const parts = [strong];
+    if (admitted > 0) parts.push(` · ${T().seatsLeft(Math.max(0, max - admitted))}`);
+    $('#popup-seats').replaceChildren(...parts);
+    $('#popup-meter').style.width = max ? Math.min(100, (admitted / max) * 100) + '%' : '0%';
   }
   // The example box is shown only while the popup is empty.
   const samples = $('#samples');
@@ -949,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let pressNote = '';
   function showPopupMessage() { setMessage(popupMsg, fullNote || stopNote || pressNote); }
   followConfirm(popupPan, $('#popup-confirm'), (message) => { stopNote = message; showPopupMessage(); });
-  popupPan.on('change', () => { pressNote = ''; showPopupMessage(); toggleSamples(); });
+  popupPan.on('change', () => { pressNote = ''; showPopupMessage(); toggleSamples(); showSeats(); });
 
   $('#open-popup').addEventListener('click', (e) => {
     e.currentTarget.classList.remove('btn--attention');

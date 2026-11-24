@@ -11,18 +11,23 @@
 
 .goldpan {
   --goldpan-font: inherit;
+  /* Addresses and the text box; a monospaced font makes typos easier to spot. */
+  --goldpan-address-font: inherit;
   --goldpan-font-size: 0.9375rem;
   --goldpan-radius: 0.65em;
   --goldpan-list-max-height: 22rem;
 
-  --goldpan-fg: #1b1f24;
-  --goldpan-muted: #5b6470;
+  --goldpan-fg: #16202a;
+  --goldpan-muted: #52606d;
   --goldpan-bg: #ffffff;
-  --goldpan-row: #f5f6f8;
-  --goldpan-line: #dfe3e8;
-  --goldpan-edge: #838d99;
-  --goldpan-focus: #2f6fde;
-  --goldpan-hover: rgba(27, 31, 36, 0.07);
+  --goldpan-row: #f3f5f4;
+  --goldpan-line: #d7dedb;
+  --goldpan-edge: #7f8f89;
+  --goldpan-focus: #0b6e4f;
+  --goldpan-hover: rgba(22, 32, 42, 0.07);
+  --goldpan-accent: #0b6e4f;
+  --goldpan-accent-fg: #ffffff;
+  --goldpan-accent-soft: #e1f0ea;
 
   --goldpan-valid: #0f7a5a;
   --goldpan-valid-soft: #e6f4ee;
@@ -36,7 +41,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 0.55em;
+  gap: 0.7em;
   width: 100%;
   /* Long addresses are cut with an ellipsis instead of widening the widget, in grid and flex layouts too. */
   min-width: 0;
@@ -54,14 +59,17 @@
 
 /* ---------- Dark colours ---------- */
 .goldpan[data-theme='dark'] {
-  --goldpan-fg: #e7ebf0;
-  --goldpan-muted: #9aa4b1;
-  --goldpan-bg: #14181d;
-  --goldpan-row: #1b2027;
-  --goldpan-line: #2f3740;
-  --goldpan-edge: #66727f;
-  --goldpan-focus: #6ea8fe;
-  --goldpan-hover: rgba(231, 235, 240, 0.08);
+  --goldpan-fg: #e4ebe8;
+  --goldpan-muted: #9aa8a3;
+  --goldpan-bg: #161e24;
+  --goldpan-row: #0f1519;
+  --goldpan-line: #2a353c;
+  --goldpan-edge: #6b7a74;
+  --goldpan-focus: #5fd0a4;
+  --goldpan-hover: rgba(228, 235, 232, 0.08);
+  --goldpan-accent: #5fd0a4;
+  --goldpan-accent-fg: #0f1519;
+  --goldpan-accent-soft: #15302a;
   --goldpan-valid: #4cc39a;
   --goldpan-valid-soft: #11291f;
   --goldpan-warning: #f2c14e;
@@ -74,14 +82,17 @@
 
 @media (prefers-color-scheme: dark) {
   .goldpan[data-theme='auto'] {
-    --goldpan-fg: #e7ebf0;
-    --goldpan-muted: #9aa4b1;
-    --goldpan-bg: #14181d;
-    --goldpan-row: #1b2027;
-    --goldpan-line: #2f3740;
-    --goldpan-edge: #66727f;
-    --goldpan-focus: #6ea8fe;
-    --goldpan-hover: rgba(231, 235, 240, 0.08);
+    --goldpan-fg: #e4ebe8;
+    --goldpan-muted: #9aa8a3;
+    --goldpan-bg: #161e24;
+    --goldpan-row: #0f1519;
+    --goldpan-line: #2a353c;
+    --goldpan-edge: #6b7a74;
+    --goldpan-focus: #5fd0a4;
+    --goldpan-hover: rgba(228, 235, 232, 0.08);
+    --goldpan-accent: #5fd0a4;
+    --goldpan-accent-fg: #0f1519;
+    --goldpan-accent-soft: #15302a;
     --goldpan-valid: #4cc39a;
     --goldpan-valid-soft: #11291f;
     --goldpan-warning: #f2c14e;
@@ -93,17 +104,24 @@
   }
 }
 
-/* ---------- Head: counter and filters ---------- */
+/* ---------- Head: filters and counter ---------- */
 .goldpan__head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.4em 0.8em;
+  gap: 0.5em 0.8em;
 }
 
+.goldpan__head[hidden] {
+  display: none;
+}
+
+/* First in the DOM (the text box points at it), drawn after the filters. */
 .goldpan__tally {
+  order: 1;
+  margin-inline-start: auto;
   color: var(--goldpan-muted);
+  font-size: 0.875em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -112,49 +130,66 @@
   font-weight: 600;
 }
 
+/* One segmented bar: "All", then one filter per status in its colour; the one being shown is filled. */
 .goldpan__filters {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.4em;
-  margin-inline-start: auto;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--goldpan-line);
+  border-radius: 1.4em;
+  background: var(--goldpan-row);
 }
 
-/* One pill per status, in its colour; the one being shown gets an outline. */
+.goldpan__filters[hidden] {
+  display: none;
+}
+
 .goldpan__filter {
   display: inline-flex;
   align-items: center;
-  gap: 0.35em;
+  gap: 0.4em;
+  min-height: 2.6em;
   margin: 0;
-  padding: 0.3em 0.75em;
-  border: 0.1em solid transparent;
+  padding: 0 1.05em;
+  border: 0;
   border-radius: 999px;
+  background: transparent;
+  color: var(--goldpan-fg);
   font: inherit;
-  font-size: 0.8125em;
+  font-size: 0.875em;
   font-weight: 600;
   line-height: 1.2;
   cursor: pointer;
 }
 
-.goldpan__filter--valid { background: var(--goldpan-valid-soft); color: var(--goldpan-valid); }
-.goldpan__filter--warning { background: var(--goldpan-warning-soft); color: var(--goldpan-warning); }
-.goldpan__filter--invalid { background: var(--goldpan-invalid-soft); color: var(--goldpan-invalid); }
+.goldpan__filter--valid { color: var(--goldpan-valid); }
+.goldpan__filter--warning { color: var(--goldpan-warning); }
+.goldpan__filter--invalid { color: var(--goldpan-invalid); }
 
-.goldpan__filter:hover:not(:disabled) {
-  border-color: color-mix(in srgb, currentColor 45%, transparent);
+.goldpan__filter:hover:not(:disabled):not([aria-pressed='true']) {
+  background: var(--goldpan-hover);
 }
 
 .goldpan__filter[aria-pressed='true'] {
-  border-color: currentColor;
+  background: var(--goldpan-accent);
+  color: var(--goldpan-accent-fg);
+}
+
+.goldpan__filter > .goldpan__svg {
+  width: 1.15em;
+  height: 1.15em;
 }
 
 .goldpan__filter-count {
+  opacity: 0.8;
   font-variant-numeric: tabular-nums;
 }
 
 /* An empty category cannot be shown on its own. */
 .goldpan__filter:disabled {
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 /* ---------- Text box ---------- */
@@ -163,13 +198,15 @@
   width: 100%;
   height: auto;
   margin: 0;
-  padding: 0.65em 1.1em;
+  padding: 0.85em 1.05em;
   border: 1px solid var(--goldpan-edge);
-  border-radius: 999px;
+  border-radius: var(--goldpan-radius);
   background: var(--goldpan-bg);
   box-shadow: none;
   color: var(--goldpan-fg);
   font: inherit;
+  font-family: var(--goldpan-address-font);
+  font-size: 0.875em;
   transition: border-color 120ms ease-out, box-shadow 120ms ease-out;
 }
 
@@ -208,10 +245,11 @@
   align-items: center;
   gap: 0.6em;
   margin: 0;
-  padding: 0.55em 0.75em;
+  padding: 0.55em 0.8em;
   border: 1px solid var(--goldpan-invalid-line);
   border-radius: var(--goldpan-radius);
   background: var(--goldpan-invalid-soft);
+  font-size: 0.875em;
   font-weight: 600;
 }
 
@@ -223,50 +261,46 @@
   color: var(--goldpan-invalid);
 }
 
-/* ---------- Addresses: one card each ---------- */
+/* ---------- Addresses: one card each; the list scrolls past --goldpan-list-max-height ---------- */
 .goldpan__list {
+  /* Narrow lists rearrange the cards that have a Fix button (see below). */
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 0.4em;
+  gap: 0.55em;
   max-height: var(--goldpan-list-max-height);
   margin: 0;
   padding: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--goldpan-edge) transparent;
 }
 
 .goldpan__list:empty {
   display: none;
 }
 
+/* Status icon, address with its message, buttons */
 .goldpan__row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   flex: none;
   align-items: center;
-  gap: 0.6em;
-  min-height: 2.95em;
-  padding: 0.3em 0.35em 0.3em 0.75em;
+  column-gap: 0.8em;
+  min-height: 3.2em;
+  padding: 0.4em 0.4em 0.4em 0.8em;
   border: 1px solid var(--goldpan-line);
   border-radius: var(--goldpan-radius);
-  background: var(--goldpan-row);
+  background: var(--goldpan-bg);
   /* Cards out of view are neither laid out nor painted: long lists stay fast. */
   content-visibility: auto;
-  contain-intrinsic-size: auto 2.95em;
+  contain-intrinsic-size: auto 3.2em;
 }
 
 .goldpan__row[hidden] {
   display: none;
-}
-
-.goldpan__row[data-status='warning'] {
-  border-color: var(--goldpan-warning-line);
-  background: var(--goldpan-warning-soft);
-}
-
-.goldpan__row[data-status='invalid'] {
-  border-color: var(--goldpan-invalid-line);
-  background: var(--goldpan-invalid-soft);
 }
 
 /* A copy of this address was just pasted and dropped: point at the original.
@@ -278,8 +312,12 @@
 
 .goldpan__mark {
   display: inline-flex;
-  flex: none;
   color: var(--goldpan-valid);
+}
+
+.goldpan__mark > .goldpan__svg {
+  width: 1.2em;
+  height: 1.2em;
 }
 
 .goldpan__row[data-status='warning'] .goldpan__mark { color: var(--goldpan-warning); }
@@ -287,25 +325,23 @@
 
 .goldpan__text {
   display: flex;
-  flex: 1;
   flex-direction: column;
   min-width: 0;
 }
 
 .goldpan__address {
   overflow: hidden;
+  font-family: var(--goldpan-address-font);
+  font-size: 0.875em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.goldpan__row[data-status='invalid'] .goldpan__address {
-  color: var(--goldpan-invalid);
-  font-weight: 600;
-}
-
 .goldpan__note {
+  margin-top: 0.1em;
   color: var(--goldpan-muted);
-  font-size: 0.8125em;
+  font-size: 0.8333em;
+  font-weight: 500;
   /* A suggested address is one long word: let it break on narrow screens. */
   overflow-wrap: break-word;
 }
@@ -317,23 +353,37 @@
 .goldpan__row[data-status='warning'] .goldpan__note { color: var(--goldpan-warning); }
 .goldpan__row[data-status='invalid'] .goldpan__note { color: var(--goldpan-invalid); }
 
+/* The address being edited; it keeps the size of the address it replaces. */
 .goldpan .goldpan__edit {
   width: 100%;
   height: auto;
   margin: 0;
-  padding: 0.25em 0.55em;
+  padding: 0.3em 0.6em;
   border: 1px solid var(--goldpan-focus);
-  border-radius: 0.4em;
+  border-radius: 0.45em;
   background: var(--goldpan-bg);
   box-shadow: none;
   color: var(--goldpan-fg);
   font: inherit;
 }
 
-/* ---------- Card buttons ---------- */
+/* On a narrow list (a phone), the buttons of a card with Fix go below the address and its message,
+   which keep the whole width. */
+@container (max-width: 30em) {
+  .goldpan__row--fixable {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 0.3em;
+  }
+  .goldpan__row--fixable .goldpan__tools {
+    grid-column: 2;
+    justify-content: flex-start;
+    margin-inline-start: -0.1em;
+  }
+}
+
+/* ---------- Card buttons: Fix (words), edit and remove (icons) ---------- */
 .goldpan__tools {
   display: flex;
-  flex: none;
   align-items: center;
   gap: 0.15em;
 }
@@ -343,12 +393,12 @@
   align-items: center;
   justify-content: center;
   gap: 0.35em;
-  min-width: 2.45em;
-  height: 2.45em;
+  min-width: 2.6em;
+  height: 2.6em;
   margin: 0;
-  padding: 0 0.55em;
+  padding: 0;
   border: 0;
-  border-radius: 0.55em;
+  border-radius: 999px;
   background: transparent;
   color: var(--goldpan-muted);
   font: inherit;
@@ -366,16 +416,18 @@
 }
 
 .goldpan__tool--fix {
-  padding: 0 0.8em;
+  margin-inline-end: 0.3em;
+  padding: 0 1.05em;
+  border: 1px solid var(--goldpan-accent);
   background: var(--goldpan-bg);
-  box-shadow: inset 0 0 0 1px currentColor;
-  color: var(--goldpan-valid);
+  color: var(--goldpan-accent);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .goldpan__tool--fix:hover:not(:disabled) {
-  background: var(--goldpan-valid-soft);
-  color: var(--goldpan-valid);
+  background: var(--goldpan-accent-soft);
+  color: var(--goldpan-accent);
 }
 
 .goldpan__tool:disabled {
@@ -396,7 +448,7 @@
 /* ---------- Other states ---------- */
 .goldpan__empty {
   margin: 0;
-  padding: 0 0.3em;
+  padding: 0 0.1em;
   color: var(--goldpan-muted);
   font-size: 0.875em;
 }
@@ -432,7 +484,7 @@
 }
 
 /* Windows high contrast and other forced colours: backgrounds and shadows are dropped,
-   so states are told apart by outlines and borders. */
+   so states are told apart by outlines and borders (the status icons keep their shapes). */
 @media (forced-colors: active) {
   .goldpan .goldpan__input:focus,
   .goldpan .goldpan__edit:focus {
@@ -440,7 +492,7 @@
     outline-offset: 1px;
   }
   .goldpan__filter {
-    border-color: ButtonText;
+    border: 1px solid ButtonText;
   }
   .goldpan__filter[aria-pressed='true'] {
     outline: 2px solid Highlight;

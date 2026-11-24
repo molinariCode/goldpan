@@ -5,7 +5,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-- Package description, keywords and README introduction lead with the main use: adding people to a list you already have.
+## [2.0.0] - 2026-11-24
+
+A new look. Every feature works as before: statuses, messages, Fix, editing, removing, filters, limits, confirmation.
+
+### Changed
+
+- Redesigned widget: each address on a white card with a status icon (a tick, a triangle, a "no entry" sign), the address and, below it, its message in the colour of the status. The Fix, edit and remove buttons are where they were; Fix shows its word only
+- The filters are one segmented bar that starts with "All" and appears with the first address; the counter sits after them
+- The text box has rounded corners instead of a pill, the list has a thin scrollbar and scrolls past `--goldpan-list-max-height` as before
+- New default colours, light and dark, still passing WCAG AA, and new icons
+- Package description, keywords and README introduction lead with the main use: adding people to a list you already have
+
+### Added
+
+- Message `all`, the name of the "All" filter, in every bundled language. A messages object of your own typed as `GoldpanMessages` needs it (objects passed as `Partial` fall back to English)
+- CSS variables `--goldpan-address-font`, `--goldpan-accent`, `--goldpan-accent-fg` and `--goldpan-accent-soft`
 
 ## [1.0.0] - 2026-10-25
 

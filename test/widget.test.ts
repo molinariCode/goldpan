@@ -171,6 +171,55 @@ describe('Goldpan widget', () => {
     expect(filter('valid').disabled).toBe(true);
   });
 
+  it('starts the filters with "All", which counts every address and shows them again', () => {
+    const pan = new Goldpan(setup());
+    pan.add('a@x.com bad c@x.com');
+    const buttons = [...pan.element.querySelectorAll<HTMLButtonElement>('.goldpan__filter')];
+    expect(buttons.map((b) => b.dataset.status)).toEqual(['all', 'valid', 'warning', 'invalid']);
+    const all = buttons[0];
+    expect(all.textContent).toBe('All3');
+    expect(all.querySelector('svg')).toBeNull();
+    expect(all.getAttribute('aria-pressed')).toBe('true');
+
+    pan.element.querySelector<HTMLButtonElement>('.goldpan__filter--invalid')!.click();
+    expect(pan.getFilter()).toBe('invalid');
+    expect(all.getAttribute('aria-pressed')).toBe('false');
+    all.click();
+    expect(pan.getFilter()).toBe('all');
+    expect(all.getAttribute('aria-pressed')).toBe('true');
+    expect(rows(pan).filter((li) => !li.hidden)).toHaveLength(3);
+    all.click();
+    expect(pan.getFilter()).toBe('all');
+  });
+
+  it('shows the filters only once there is an address, and hides an empty head', () => {
+    const pan = new Goldpan(setup(), { showCounter: false });
+    const head = pan.element.querySelector<HTMLElement>('.goldpan__head')!;
+    const filters = pan.element.querySelector<HTMLElement>('.goldpan__filters')!;
+    expect(filters.hidden).toBe(true);
+    expect(head.hidden).toBe(true);
+    pan.add('a@x.com');
+    expect(filters.hidden).toBe(false);
+    expect(head.hidden).toBe(false);
+    pan.clear();
+    expect(head.hidden).toBe(true);
+    pan.setOptions({ showCounter: true });
+    expect(head.hidden).toBe(false);
+    expect(filters.hidden).toBe(true);
+  });
+
+  it('draws the fix button with words only, the edit and remove buttons with an icon', () => {
+    const pan = new Goldpan(setup());
+    pan.add('grace@outlookk.com');
+    const tool = (action: string) => pan.element.querySelector<HTMLButtonElement>(`[data-action="${action}"]`)!;
+    expect(tool('fix').querySelector('svg')).toBeNull();
+    expect(rows(pan)[0].classList.contains('goldpan__row--fixable')).toBe(true);
+    tool('fix').click();
+    expect(rows(pan)[0].classList.contains('goldpan__row--fixable')).toBe(false);
+    expect(tool('edit').querySelector('svg.goldpan__svg')).not.toBeNull();
+    expect(tool('remove').querySelector('svg.goldpan__svg')).not.toBeNull();
+  });
+
   it('rounds a fractional limit down everywhere', () => {
     const pan = new Goldpan(setup(), { maxEmails: 2.7 });
     pan.add('a@x.com b@x.com c@x.com');
@@ -179,11 +228,11 @@ describe('Goldpan widget', () => {
     expect(pan.element.querySelector('.goldpan__tally')!.classList.contains('goldpan__tally--full')).toBe(true);
   });
 
-  it('puts the counter and the filters above the text box, then one card per address', () => {
+  it('puts the text box first, then the filters and the counter, then one card per address', () => {
     const pan = new Goldpan(setup());
     pan.add('a@x.com bad');
     const parts = [...pan.element.children].map((el) => el.className);
-    expect(parts.slice(0, 4)).toEqual(['goldpan__head', 'goldpan__input', 'goldpan__notice', 'goldpan__list']);
+    expect(parts.slice(0, 4)).toEqual(['goldpan__input', 'goldpan__head', 'goldpan__notice', 'goldpan__list']);
     const head = pan.element.querySelector('.goldpan__head')!;
     expect([...head.children].map((el) => el.className)).toEqual(['goldpan__tally', 'goldpan__filters']);
     expect(pan.element.querySelectorAll('.goldpan__list > .goldpan__row')).toHaveLength(2);

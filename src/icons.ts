@@ -1,17 +1,17 @@
 // Hand-drawn 24×24 stroke icons, built with the DOM (no innerHTML, no icon font, no request).
 // Each one is drawn once per document, then cloned: cloning is far cheaper than parsing.
 
-export type IconName = 'valid' | 'warning' | 'invalid' | 'edit' | 'remove' | 'fix';
+export type IconName = 'valid' | 'warning' | 'invalid' | 'edit' | 'remove';
 
 type Shape = [tag: 'circle' | 'path', attributes: Record<string, string>];
 
+// valid: a tick; warning: a triangle; invalid: a "no entry" sign; edit: a pen over a line; remove: a cross.
 const SHAPES: Record<IconName, Shape[]> = {
-  valid: [['circle', { cx: '12', cy: '12', r: '9' }], ['path', { d: 'M8 12.5l2.7 2.7L16 9.5' }]],
-  warning: [['path', { d: 'M12 3.5L21.5 20h-19z' }], ['path', { d: 'M12 10v4.5' }], ['path', { d: 'M12 17.5v.01' }]],
-  invalid: [['circle', { cx: '12', cy: '12', r: '9' }], ['path', { d: 'M12 7.5v5.5' }], ['path', { d: 'M12 16.5v.01' }]],
-  edit: [['path', { d: 'M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z' }], ['path', { d: 'M13.5 6.5l4 4' }]],
-  remove: [['path', { d: 'M6 6l12 12M18 6L6 18' }]],
-  fix: [['path', { d: 'M4 12.5l5 5L20 6.5' }]],
+  valid: [['path', { d: 'M5 12.5l4.5 4.5L19 7', 'stroke-width': '2.4' }]],
+  warning: [['path', { d: 'M12 4L21 19.5H3z' }], ['path', { d: 'M12 10v4' }], ['path', { d: 'M12 17v.01' }]],
+  invalid: [['circle', { cx: '12', cy: '12', r: '8.5' }], ['path', { d: 'M6 6l12 12' }]],
+  edit: [['path', { d: 'M15 4.5l3.5 3.5L9 17.5H5.5V14z' }], ['path', { d: 'M4 21h16' }]],
+  remove: [['path', { d: 'M6 6l12 12M18 6L6 18', 'stroke-width': '2.4' }]],
 };
 
 const FRAME: Record<string, string> = {

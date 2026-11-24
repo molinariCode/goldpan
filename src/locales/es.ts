@@ -8,6 +8,7 @@ const es: GoldpanMessages = {
   valid: 'Válidas',
   warning: 'Por revisar',
   invalid: 'Descartadas',
+  all: 'Todos',
   filterGroup: 'Mostrar solo',
   counter: { one: '{count} dirección', other: '{count} direcciones' },
   counterMax: '{count} de {max} plazas',

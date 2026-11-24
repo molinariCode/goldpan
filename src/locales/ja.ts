@@ -8,6 +8,7 @@ const ja: GoldpanMessages = {
   valid: '有効',
   warning: '要確認',
   invalid: '除外',
+  all: 'すべて',
   filterGroup: '絞り込み',
   counter: '{count} 件',
   counterMax: '{count} / {max} 枠',

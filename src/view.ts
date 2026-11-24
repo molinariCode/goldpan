@@ -33,7 +33,8 @@ export interface Look {
 /** What the user asked for, passed back to the owner of the view. */
 export interface Intents {
   action(action: RowAction, id: string): void;
-  filter(status: EntryStatus): void;
+  /** A filter button was pressed: `'all'` or the status of the button. */
+  filter(value: FilterValue): void;
 }
 
 /** DOM of one row, kept between renders. */
@@ -68,8 +69,11 @@ export class ListView {
 
   private readonly doc: Document;
   private readonly intents: Intents;
+  private readonly head: HTMLDivElement;
   private readonly tally: HTMLSpanElement;
   private readonly filterGroup: HTMLDivElement;
+  /** "All", then one filter per status. */
+  private readonly showAll: FilterButton;
   private readonly filters = {} as Record<EntryStatus, FilterButton>;
   private readonly list: HTMLUListElement;
   private readonly notice: HTMLParagraphElement;
@@ -93,27 +97,31 @@ export class ListView {
     this.list = this.make('ul', 'goldpan__list');
     this.list.id = `${id}-list`;
 
-    // Head: the counter on the left, one filter per status on the right
-    const head = this.make('div', 'goldpan__head');
+    // Head, below the text box: the filters ("All", then one per status, as one segmented bar) and the
+    // counter. The counter comes first in the DOM (the text box points at it) and is drawn after the filters.
+    const head = (this.head = this.make('div', 'goldpan__head'));
     this.tally = this.make('span', 'goldpan__tally');
     this.tally.id = `${id}-tally`;
     this.filterGroup = this.make('div', 'goldpan__filters');
     this.filterGroup.setAttribute('role', 'group');
-    for (const status of STATUSES) {
-      const button = this.make('button', `goldpan__filter goldpan__filter--${status}`);
+    const filterButton = (value: FilterValue): FilterButton => {
+      const button = this.make('button', `goldpan__filter goldpan__filter--${value}`);
       button.type = 'button';
-      button.dataset.status = status;
+      button.dataset.status = value;
       button.setAttribute('aria-pressed', 'false');
       button.setAttribute('aria-controls', this.list.id);
       const name = this.make('span', 'goldpan__filter-name');
       const count = this.make('span', 'goldpan__filter-count');
-      button.append(icon(doc, status), name, count);
+      if (value === 'all') button.append(name, count);
+      else button.append(icon(doc, value), name, count);
       this.filterGroup.append(button);
-      this.filters[status] = { button, name, count };
-    }
+      return { button, name, count };
+    };
+    this.showAll = filterButton('all');
+    for (const status of STATUSES) this.filters[status] = filterButton(status);
     head.append(this.tally, this.filterGroup);
 
-    // Text box, below the head; the addresses follow, one card each
+    // Text box, first; the head and the addresses follow, one card each
     const input = (this.input = this.make('input', 'goldpan__input'));
     input.type = 'text';
     input.id = `${id}-input`;
@@ -137,11 +145,11 @@ export class ListView {
     this.live.setAttribute('role', 'status');
     this.live.setAttribute('aria-live', 'polite');
 
-    root.append(head, input, this.notice, this.list, this.empty, this.live);
+    root.append(input, head, this.notice, this.list, this.empty, this.live);
 
     this.listen(this.filterGroup, 'click', (event) => {
       const button = (event.target as Element).closest<HTMLElement>('.goldpan__filter');
-      if (button) this.intents.filter(button.dataset.status as EntryStatus);
+      if (button) this.intents.filter(button.dataset.status as FilterValue);
     });
     this.listen(this.list, 'click', (event) => {
       const button = (event.target as Element).closest<HTMLElement>('.goldpan__tool');
@@ -165,6 +173,7 @@ export class ListView {
     this.root.dataset.theme = look.theme;
     this.input.disabled = look.disabled;
     this.tally.hidden = !look.showCounter;
+    this.head.hidden = this.tally.hidden && this.filterGroup.hidden;
   }
 
   setTexts(texts: Texts): void {
@@ -174,6 +183,7 @@ export class ListView {
     else this.input.setAttribute('aria-label', texts.inputName);
     this.list.setAttribute('aria-label', texts.listName);
     this.filterGroup.setAttribute('aria-label', m.filterGroup);
+    this.showAll.name.textContent = m.all;
     for (const status of STATUSES) this.filters[status].name.textContent = m[status];
     this.empty.textContent = m.empty;
     // Every label may have changed.
@@ -208,12 +218,17 @@ export class ListView {
 
     const { counts } = scene;
     const m = this.messages;
+    this.showAll.count.textContent = String(scene.entries.length);
+    this.showAll.button.disabled = scene.disabled;
     for (const status of STATUSES) {
       const { button, count } = this.filters[status];
       count.textContent = String(counts[status]);
       // An empty category cannot be shown on its own.
       button.disabled = scene.disabled || counts[status] === 0;
     }
+    // Nothing to filter yet: the filters wait for the first address, and the head goes when it is empty.
+    this.filterGroup.hidden = scene.entries.length === 0;
+    this.head.hidden = this.tally.hidden && this.filterGroup.hidden;
     this.tally.textContent =
       scene.max === null
         ? format(m.counter, { count: counts.admitted }, m.lang)
@@ -230,6 +245,7 @@ export class ListView {
       const hide = filter !== 'all' && row.li.dataset.status !== filter;
       if (row.li.hidden !== hide) row.li.hidden = hide;
     }
+    this.showAll.button.setAttribute('aria-pressed', String(filter === 'all'));
     for (const status of STATUSES) this.filters[status].button.setAttribute('aria-pressed', String(filter === status));
   }
 
@@ -247,6 +263,8 @@ export class ListView {
     else delete li.dataset.reason;
     li.classList.toggle('goldpan__row--editing', editing);
     li.classList.toggle('goldpan__row--highlight', lit);
+    // A card with the Fix button: on a narrow list its buttons go below the address.
+    li.classList.toggle('goldpan__row--fixable', !!entry.suggestion);
 
     if (row.marked !== entry.status) {
       row.mark.replaceChildren(icon(this.doc, entry.status));
@@ -291,16 +309,17 @@ export class ListView {
     button.dataset.action = action;
     button.disabled = disabled;
     button.title = description;
-    button.append(icon(this.doc, action));
     if (text) {
-      // Visible text first, so that the accessible name starts with what is on screen
-      // ("Fix, use ada@gmail.com"): people using speech control can say what they see.
+      // A button with words ("Fix") shows only them. Visible text first, so that the accessible name
+      // starts with what is on screen ("Fix, use ada@gmail.com"): people using speech control can say what they see.
       const visible = this.make('span', 'goldpan__tool-text');
       visible.textContent = text;
       const extra = this.make('span', 'goldpan__sr-only');
       extra.textContent = `, ${description}`;
       button.append(visible, extra);
     } else {
+      // An icon button (edit, remove) is named by its description.
+      button.append(icon(this.doc, action === 'fix' ? 'valid' : action));
       button.setAttribute('aria-label', description);
     }
     return button;

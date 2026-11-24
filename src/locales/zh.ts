@@ -8,6 +8,7 @@ const zh: GoldpanMessages = {
   valid: '有效',
   warning: '待确认',
   invalid: '已排除',
+  all: '全部',
   filterGroup: '仅显示',
   counter: '{count} 个地址',
   counterMax: '{count} / {max} 个名额',

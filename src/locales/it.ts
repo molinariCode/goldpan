@@ -8,6 +8,7 @@ const it: GoldpanMessages = {
   valid: 'Validi',
   warning: 'Da controllare',
   invalid: 'Scartati',
+  all: 'Tutti',
   filterGroup: 'Mostra solo',
   counter: { one: '{count} indirizzo', other: '{count} indirizzi' },
   counterMax: '{count} su {max} posti',
