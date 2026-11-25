@@ -41,4 +41,6 @@ that must be caught, and if possible one real domain nearby that must be left al
 1. In `CHANGELOG.md`, put the changes under the new version with today's date, and commit.
 2. `npm version patch` (or `minor`, `major`): it updates `package.json` and `package-lock.json`, commits and tags `vX.Y.Z`.
 3. `git push --follow-tags`, then on GitHub: Releases → Draft a new release → pick that tag → Publish.
-   The `release.yml` workflow checks that the tag matches `package.json` and publishes the package to npm.
+   The `release.yml` workflow checks that the tag matches `package.json` and stages the package on npm.
+4. On npmjs.com, Staged Packages: check the staged version and approve it with 2FA (or `npm stage approve <id>`).
+   Only then is it public.
